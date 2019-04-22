@@ -1,0 +1,34 @@
+const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
+
+module.exports = {
+  entry: './src/index.ts',
+  mode: 'development',
+  output: {
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  target: 'node',
+  resolve: {
+    extensions: ['.ts', '.js', '.json', '.tsx']
+  },
+  node: {
+    __dirname: false,
+  },
+  module: {
+    rules: [{
+      test: /\.tsx?$/,
+      loader: 'babel-loader',
+    }, {
+      test: /\.js$/,
+      use: ["source-map-loader"],
+      enforce: "pre"
+    }]
+  },
+  plugins: [
+    new CopyPlugin([
+      { from: '*', to: 'lua', context: 'src/lua' },
+      { from: '*', to: 'include', context: 'bin/' },
+    ])
+  ]
+};
