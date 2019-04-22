@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fetch from 'node-fetch';
 import fs from 'fs';
+import express from 'express';
 
 import { IPublicStashResponse } from './data/IPublicStashResponse';
 import { IPublicItem } from './data/IPublicItem';
@@ -20,6 +21,15 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
 const LUAFolder = path.resolve(__dirname, 'lua/');
 
 (async () => {
+  const app = express();
+
+  let displayedItems = [];
+
+  app.get('/', (req, res) => {
+    res.send(displayedItems);
+  });
+  app.listen(8080, '127.0.0.1'); 
+
   const poeData: IPublicStashResponse = await (await fetch('http://www.pathofexile.com/api/public-stash-tabs')).json();
   const items: IPublicItem[] = poeData.stashes.filter(
     (stash) => stash.public
@@ -37,7 +47,7 @@ const LUAFolder = path.resolve(__dirname, 'lua/');
     }
     return false;
   });
-  oneHandWeapons.slice(0, 1).forEach((weapon) => {
+  oneHandWeapons.forEach((weapon) => {
     const weaponQualityProperty = weapon.properties.find((property) => property.name === 'Quality');
     let weaponQuality = 20;
     if (weaponQualityProperty) {
@@ -45,7 +55,7 @@ const LUAFolder = path.resolve(__dirname, 'lua/');
         weaponQualityProperty.values[0][0].substring(1, weaponQualityProperty.values[0][0].length - 1)
       ));
     }
-    const PathOfBuildingObject = [
+    const PathOfBuildingItem = [
       weapon.name,
       weapon.typeLine,
       `Crafted: ${weapon.craftedMods && weapon.craftedMods.length > 0 || false}`,
@@ -59,20 +69,26 @@ const LUAFolder = path.resolve(__dirname, 'lua/');
       [
         TestItemPath,
         PathOfBuildingBuildXML,
-        PathOfBuildingObject
+        PathOfBuildingItem
       ],
       {
         cwd: PathOfBuildingLUAPath
       }
     );
+    const displayItem = {
+      baseItem: PathOfBuildingItem,
+      calculatedItem: '',
+    }
     MockItemProcess.stdout.on('data', (chunk) => {
       console.log(chunk.toString());
+      displayItem.calculatedItem += chunk;
     })
     MockItemProcess.stderr.on('data', (chunk) => {
       console.log(chunk.toString());
     })
     MockItemProcess.on('close', (code) => {
       console.log('Exited with code', code);
+      displayedItems.push(displayItem);
     })
   })
 })();
