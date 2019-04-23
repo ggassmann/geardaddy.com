@@ -54,7 +54,7 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
     if (PathOfBuildingLimiter.queued() <= 4) {
       buildItems();
     }
-  }, 100);
+  }, 1000);
 
   const buildItems = async () => {
     let poeDataEndpoint = 'http://www.pathofexile.com/api/public-stash-tabs';
