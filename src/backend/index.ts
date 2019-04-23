@@ -57,11 +57,16 @@ import { buildItems, PathOfBuildingLimiter } from './pathofbuilding';
       }
       return false;
     });
-    await Promise.all(_.chunk(items, db.get('settings.performance.pathofbuilding.processcount').value() * 2).map(async (items) => {
-      const builtItems = await buildItems(items);
-      await db.get('items').push(...builtItems).write();
-      console.log('wrote items');
-    }));
+    await Promise.all(
+      _.chunk(
+        items, 
+        db.get('settings.performance.pathofbuilding.processcount').value() * 2
+      ).map(async (items) => {
+        const builtItems = await buildItems(items);
+        await db.get('items').push(...builtItems).write();
+        console.log('wrote items');
+      })
+    );
     await db.set('nextChangeId', stashData.next_change_id).write();
     tick();
   }

@@ -6,6 +6,7 @@ import { IPublicStash } from 'src/data/IPublicStash';
 import { IPublicItem } from 'src/data/IPublicItem';
 
 export class PublicStashData implements IPublicStashResponse {
+  public error?: { code: number; message: string; } = undefined;
   public next_change_id: string = '';
   public stashes: IPublicStash[] = [];
 
@@ -16,7 +17,7 @@ export class PublicStashData implements IPublicStashResponse {
   }
 }
 
-export const getNextPublicStashData = async () => {
+export const getNextPublicStashData = async (): Promise<PublicStashData> => {
   const db = await dbAsync;
   let poeDataEndpoint = 'http://www.pathofexile.com/api/public-stash-tabs';
   if (db.get('nextChangeId').value()) {
@@ -36,6 +37,6 @@ export const getNextPublicStashData = async () => {
   poeData.stashes = poeData.stashes.filter(
     (stash) => stash.public
   );
-  
+
   return Object.assign(new PublicStashData, poeData);
 }
