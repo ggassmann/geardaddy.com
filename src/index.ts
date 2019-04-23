@@ -40,7 +40,7 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
         ))
         .orderBy((item: IDisplayedItem) => {
           const averageHitLine = item.calculatedItem.find((calculatedLine) => {
-            return calculatedLine.changeStatName.trim() === 'Total DPS'
+            return calculatedLine.changeStatName.trim() === 'Average Hit'
           });
           if (!averageHitLine) {
             return -1000000000;
@@ -146,7 +146,13 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
         })
         MockItemProcess.on('close', (code) => {
           console.log('Exited with code', code);
-          db.get('items').push(displayItem).write();
+          const identicalItem = db.get('items').find((item: IDisplayedItem) => item.id === displayItem.id).value();
+          if(identicalItem) {
+            console.log('found identical item');
+            db.get('items').update(`id=${identicalItem.id}`, (item: IDisplayedItem) => displayItem);
+          } else {
+            db.get('items').push(displayItem).write();
+          }
           resolve();
         })
       }));

@@ -2,6 +2,7 @@ import * as React from 'react';
 /** @jsx jsx */
 import { css, jsx } from '@emotion/core'
 import { ThemeProvider } from 'emotion-theming'
+import {Helmet} from 'react-helmet';
 
 import { IDisplayedItem } from '../data/IDisplayedItem';
 import { ItemTheme } from './Theme';
@@ -18,10 +19,16 @@ export const App = () => {
     }
   }, []);
   return (
-    <ThemeProvider theme={ItemTheme}>
-      {items.map((item) => (
-        <ItemBox item={item} key={item.id} />
-      ))}
-    </ThemeProvider>
+    <> 
+      <Helmet>
+        <meta charSet="utf-8"/>
+        <title>Gear Daddy</title>
+      </Helmet>
+      <ThemeProvider theme={ItemTheme}>
+        {items.map((item) => (
+          <ItemBox item={item} key={item.id} />
+        ))}
+      </ThemeProvider>
+    </>
   )
 }
