@@ -6,7 +6,14 @@ export const db: Promise<LowdbAsync<any>> = low(adapter);
 
 (async () => {
   (await db).defaults({
-    items: [],
     nextChangeId: undefined,
+    settings: {
+      performance: {
+        pathofbuilding: {
+          processcount: 1,
+        }
+      }
+    },
+    items: [],
   }).write();
 })();

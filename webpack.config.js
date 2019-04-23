@@ -3,7 +3,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const WebpackHTMLPlugin = require('html-webpack-plugin')
 
 module.exports = [{
-  entry: './src/index.ts',
+  entry: './src/backend/index.ts',
   mode: 'development',
   devtool: "source-map",
   output: {
