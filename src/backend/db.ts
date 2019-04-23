@@ -10,7 +10,7 @@ export const db: Promise<LowdbAsync<any>> = low(adapter);
     settings: {
       performance: {
         pathofbuilding: {
-          processcount: 1,
+          processcount: 4,
         }
       }
     },
