@@ -1,9 +1,11 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const WebpackHTMLPlugin = require('html-webpack-plugin')
 
-module.exports = {
+module.exports = [{
   entry: './src/index.ts',
   mode: 'development',
+  devtool: "source-map",
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
@@ -31,4 +33,31 @@ module.exports = {
       { from: '*', to: 'include', context: 'bin/' },
     ])
   ]
-};
+}, {
+  entry: './src/frontend/index.tsx',
+  devtool: "source-map",
+  mode: 'development',
+  output: {
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist/frontend')
+  },
+  resolve: {
+    extensions: ['.ts', '.js', '.json', '.tsx']
+  },
+  node: {
+    __dirname: false,
+  },
+  module: {
+    rules: [{
+      test: /\.tsx?$/,
+      loader: 'babel-loader',
+    }, {
+      test: /\.js$/,
+      use: ["source-map-loader"],
+      enforce: "pre"
+    }]
+  },
+  plugins: [
+    new WebpackHTMLPlugin(),
+  ]
+}];

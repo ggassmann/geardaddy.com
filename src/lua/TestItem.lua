@@ -15,14 +15,14 @@ local item = new("Item", build.targetVersion, ITEM_TEXT)
 if item.base then
 	item:BuildModList()
 
-	-- Extract new item's info to a fake tooltip
   local tooltip = {}
   function tooltip:AddLine(type, txt)
     if string.find(txt, 'will give you') ~= nil then
       return
     end
     if type == 14 then
-      print(string.sub(txt, 9))
+      local isPositive = string.find(string.sub(txt, 0, 9), 'x33FF77') ~= nil
+      print((isPositive and 'true' or 'false') .. '|' .. string.sub(txt, 9))
     end
   end
   function tooltip:AddSeparator(_, _) end
