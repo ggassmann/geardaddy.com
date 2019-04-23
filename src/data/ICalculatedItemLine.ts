@@ -3,4 +3,5 @@ export interface ICalculatedItemLine {
   changeAbsolute: number;
   changeRelative: number;
   changeStatName: string;
+  changeSlot: string;
 }

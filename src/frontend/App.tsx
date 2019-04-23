@@ -11,7 +11,7 @@ export const App = () => {
   const [items, setItems] = React.useState<IDisplayedItem[]>([]);
   React.useEffect(() => {
     (async () => {
-      setItems(await (await fetch('http://localhost:8080/api/items')).json());
+      setItems(await (await fetch('http://localhost:9090/api/items')).json());
     })();
     return () => {
       console.log('test');

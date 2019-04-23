@@ -13,6 +13,7 @@ import { IPublicStash } from './data/IPublicStash';
 import { ONE_HAND_WEAPONS } from './data/WeaponCategories';
 import { IDisplayedItem } from './data/IDisplayedItem';
 import { db as dbAsync } from './db';
+import { FrameType } from './data/FrameType';
 
 const PathOfBuildingLUAPath = "C:\\ProgramData\\Path of Building"
 const PathOfBuildingBuildsPath = "C:\\Users\\gigimoi\\Documents\\Path of Building\\Builds";
@@ -34,9 +35,12 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
   app.get('/api/items', (req, res) => {
     res.send(
       db.get('items')
+        .filter((item: IDisplayedItem) => (
+          item.baseItem.frameType === FrameType.rare
+        ))
         .orderBy((item: IDisplayedItem) => {
           const averageHitLine = item.calculatedItem.find((calculatedLine) => {
-            return calculatedLine.changeStatName.trim() === 'Average Hit'
+            return calculatedLine.changeStatName.trim() === 'Total DPS'
           });
           if (!averageHitLine) {
             return -1000000000;
@@ -48,10 +52,10 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
         .value()
     );
   })
-  app.listen(8080, '127.0.0.1');
+  app.listen(9090, '127.0.0.1');
 
   setInterval(() => {
-    if (PathOfBuildingLimiter.queued() <= 4) {
+    if (PathOfBuildingLimiter.queued() <= 16) {
       buildItems();
     }
   }, 1000);
@@ -73,8 +77,8 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
     const oneHandWeapons = weapons.filter((weapon) => {
       if (weapon.category.weapons) {
         return ONE_HAND_WEAPONS.find((weaponCategory) => {
-          const firstCatLine = weapon.category.weapons![0] || 'x';
-          const secondCatLine = weapon.category.weapons![1] || 'x';
+          const firstCatLine = weapon.category.weapons![0] || undefined;
+          const secondCatLine = weapon.category.weapons![1] || undefined;
           return weaponCategory[0] == firstCatLine && weaponCategory[1] == secondCatLine;
         });
       }
@@ -93,7 +97,7 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
         weapon.typeLine,
         `Crafted: ${weapon.craftedMods && weapon.craftedMods.length > 0 || false}`,
         `Quality: ${weaponQuality}`,
-        `Implicits: ${weapon.implicitMods.length}`,
+        `Implicits: ${weapon.implicitMods && weapon.implicitMods.length || 0}`,
         ...(weapon.implicitMods || []),
         ...(weapon.explicitMods || []),
       ].join('\n');
@@ -116,19 +120,25 @@ const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
         }
         MockItemProcess.stdout.on('data', (output) => {
           const outputString = output.toString().trim();
+          let currentChunk: string;
           outputString.split('\n').forEach((chunk: string) => {
             const chunkInfo = chunk.split('|');
-            const changeInfo = chunkInfo[1];
-            const positive = chunkInfo[0] === 'true';
-            const changeAbsolute = parseFloat(changeInfo.split(' ')[0]);
-            const changeRelative = parseFloat(changeInfo.replace(/(.+\(|%\))/, ''));
-            const changeStatName = changeInfo.replace(/(-|\+)([^ ]+ )(.*?)(\(.+\n|\n|\(.+$|$)/gm, '$3');
-            displayItem.calculatedItem.push({
-              positive,
-              changeAbsolute,
-              changeRelative,
-              changeStatName,
-            });
+            if(chunkInfo[0] === 'SLOT') {
+              currentChunk = chunkInfo[1].replace(/.+Equippingthisitemin(.+)willgiveyou.+/gm, '$1');
+            } else {
+              const changeInfo = chunkInfo[1];
+              const positive = chunkInfo[0] === 'true';
+              const changeAbsolute = parseFloat(changeInfo.split(' ')[0]);
+              const changeRelative = parseFloat(changeInfo.replace(/(.+\(|%\))/, ''));
+              const changeStatName = changeInfo.replace(/(-|\+)([^ ]+ )(.*?)(\(.+\n|\n|\(.+$|$)/gm, '$3');
+              displayItem.calculatedItem.push({
+                positive,
+                changeAbsolute,
+                changeRelative,
+                changeStatName,
+                changeSlot: currentChunk,
+              });
+            }
           });
         })
         MockItemProcess.stderr.on('data', (chunk) => {

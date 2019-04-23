@@ -18,6 +18,7 @@ if item.base then
   local tooltip = {}
   function tooltip:AddLine(type, txt)
     if string.find(txt, 'will give you') ~= nil then
+      print('SLOT|'..txt:gsub('%W',''))
       return
     end
     if type == 14 then

@@ -38,13 +38,32 @@ export const ItemBox = ({ item }: IItemBoxProps) => {
       >
         <h3
           css={(theme: IItemTheme) => ({
-            color: theme.headerColor
+            color: theme.headerColor,
+            padding: '2px 8px',
+            textAlign: 'center',
+            margin: '4px',
           })}
         >
           {item.baseItem.name}
           <br />
           {item.baseItem.typeLine}
         </h3>
+        <ItemBoxSeparator />
+        <p
+          css={(theme: IItemTheme) => ({
+            color: theme.propertyFontColor,
+            padding: '2px 8px',
+            textAlign: 'center',
+            margin: '4px',
+          })}
+        >
+          {item.baseItem.properties.map((property, propertyIndex) => (
+            <React.Fragment key={property.type}>
+              {property.name}{property.values.length > 0 && ':'} {property.values.map((value) => value[0]).join(' ')}
+              {propertyIndex < item.baseItem.properties.length - 1 && <br/>}
+            </React.Fragment>
+          ))}
+        </p>
         <ItemBoxSeparator />
         <ItemBoxModSection mods={item.baseItem.implicitMods} />
         <ItemBoxSeparator />
