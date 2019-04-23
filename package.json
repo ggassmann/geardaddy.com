@@ -19,6 +19,7 @@
     "@types/react": "^16.8.14",
     "@types/react-dom": "^16.8.4",
     "babel-loader": "^8.0.5",
+    "bottleneck": "^2.18.0",
     "copy-webpack-plugin": "^5.0.2",
     "emotion-theming": "^10.0.10",
     "express": "^4.16.4",
