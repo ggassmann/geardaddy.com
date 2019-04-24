@@ -4,6 +4,14 @@ import path from 'path';
 import express from 'express';
 import _ from 'lodash';
 import util from 'util';
+import numeral from 'numeral';
+
+
+import { readFile } from 'fs';
+import fs from 'fs';
+import recursiveReaddir from 'recursive-readdir';
+const fsAccess = util.promisify(fs.access);
+const fsReaddir = util.promisify<string, string[]>(recursiveReaddir);
 
 import { IPublicItem } from '../data/IPublicItem';
 import { ONE_HAND_WEAPONS } from '../data/WeaponCategories';
@@ -11,9 +19,7 @@ import { IDisplayedItem } from '../data/IDisplayedItem';
 import { itemdb, settingsdb } from './db';
 import { FrameType } from '../data/FrameType';
 import { getNextPublicStashData } from './publicstashtab';
-import { buildItems, PathOfBuildingLimiter, getBuild } from './pathofbuilding';
-import { readFile } from 'fs';
-
+import { buildItem, PathOfBuildingLimiter, getBuild } from './pathofbuilding';
 
 (async () => {
   const app = express();
@@ -36,7 +42,43 @@ import { readFile } from 'fs';
     return {
       success: true,
     }
-  })
+  });
+
+  addSettingListener('filesystem.pathofbuilding.lua_path', async (value) => {
+    try {
+      await fsAccess(path.resolve(value, 'Launch.lua'));
+      await fsAccess(path.resolve(value, 'Modules/Build.lua'));
+      return {
+        success: true,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+        message: e.toString(),
+      }
+    }
+  });
+
+  addSettingListener('filesystem.pathofbuilding.builds_path', async (value) => {
+    try {
+      await fsAccess(value);
+      let contents: string[] = await fsReaddir(value);
+      let builds = contents.filter((file) => file.endsWith('.xml'));
+      if(builds.length === 0) {
+        throw new Error('No builds found');
+      }
+      return {
+        success: true,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+        message: e.toString(),
+      }
+    }
+  });
 
   app.get('/', (req, res) => {
     readFile(path.resolve(__dirname, 'frontend/index.html'), async (err, data) => {
@@ -58,11 +100,14 @@ import { readFile } from 'fs';
   app.get('/api/setting/:path/:value', async (req, res) => {
     try {
       const listeners = settingListeners.filter((x) => x.path === req.params.path);
-      listeners.forEach((listener) => {
-        listener.func(req.params.value);
-      })
-      await (await settingsdb).set(req.params.path, req.params.value).write();
-      res.send({ success: true });
+      const results = await Promise.all(listeners.map(async (listener) => await listener.func(req.params.value)));
+      const failures = results.filter((result) => !result.success);
+      if(failures.length > 0) {
+        res.send({success: false, errors: failures.map((failure) => failure.message)});
+      } else {
+        await (await settingsdb).set(req.params.path, req.params.value).write();
+        res.send({ success: true });
+      }
     } catch (e) {
       res.send({ success: false, error: e });
     }
@@ -83,7 +128,7 @@ import { readFile } from 'fs';
         ))
         .orderBy((item: IDisplayedItem) => {
           const averageHitLine = item.calculatedItem.find((calculatedLine) => {
-            return calculatedLine.changeStatName.trim() === 'Total DPS'
+            return calculatedLine.changeStatName.trim() === 'Average Hit'
           });
           if (!averageHitLine) {
             return -1000000000;
@@ -109,6 +154,8 @@ import { readFile } from 'fs';
 
   const build = await getBuild('test');
 
+  let itemsBuilt = 0;
+  let timeStart = new Date();
   const tick = async () => {
     const stashData = await getNextPublicStashData();
     let items: IPublicItem[] = stashData.getItems();
@@ -122,17 +169,21 @@ import { readFile } from 'fs';
       }
       return false;
     });
-    const itemChunks = _.chunk(items, (await settingsdb).get('performance.pathofbuilding.processcount').value() * 2);
-    for (let i = 0; i < itemChunks.length; i++) {
-      await db.get(
-        'items'
-      ).push(
-        ...await buildItems(itemChunks[i], build)
-      ).write();
-      console.log('wrote items');
+    let itemsBuiltFromThisResponse = 0;
+    for(let i = 0; i < items.length; i++) {
+      buildItem(items[i], build).then(async () => {
+        itemsBuilt++;
+        itemsBuiltFromThisResponse++;
+
+        const itemsPerSecond = 1 / ((new Date().getTime() - timeStart.getTime()) / itemsBuilt / 1000);
+        console.log(numeral(itemsPerSecond).format('0,0.00'), 'items per second');
+
+        if(itemsBuiltFromThisResponse === items.length) {
+          await db.set('nextChangeId', stashData.next_change_id).write();
+          tick();
+        }
+      })
     }
-    await db.set('nextChangeId', stashData.next_change_id).write();
-    tick();
   }
   tick();
 })();

@@ -58,7 +58,7 @@ export const SettingInput = ({ path }: ISettingInputProps) => {
             setGroupingInput(false);
             const results = await (
               await (
-                fetch(`http://localhost:${window.API_PORT}/api/setting/${path}/${value}`)
+                fetch(encodeURI(`http://localhost:${window.API_PORT}/api/setting/${path}/${value}`))
               )
             ).json()
             console.log(results);

@@ -21,7 +21,7 @@ export const Spinner = ({size, margin}: ISpinnerProps) => {
       height: calc(${size} * .8 - ${margin});
       border-radius: 50%;
       margin: ${margin};
-      animation ${spin} 2s linear infinite;
+      animation ${spin} 0.7s linear infinite;
       pointer-events: none;
     `}/>
   )

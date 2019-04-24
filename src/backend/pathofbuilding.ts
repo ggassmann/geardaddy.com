@@ -96,13 +96,11 @@ export const getBuild = async (name: string) => {
   return build;
 }
 
-export const buildItems = async (items: IPublicItem[], build: string) => {
-  return await Promise.all(items.map(async (item) => {
-    const displayedWeapon: IDisplayedItem = {
-      id: item.id,
-      baseItem: item,
-      calculatedItem: await GetCalculatedItemStats(item, build),
-    }
-    return displayedWeapon;
-  }));
+export const buildItem = async (item: IPublicItem, build: string) => {
+  const displayedWeapon: IDisplayedItem = {
+    id: item.id,
+    baseItem: item,
+    calculatedItem: await GetCalculatedItemStats(item, build),
+  }
+  return displayedWeapon;
 }
