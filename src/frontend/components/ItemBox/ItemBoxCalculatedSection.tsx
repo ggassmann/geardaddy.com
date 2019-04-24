@@ -3,7 +3,7 @@ import * as React from 'react';
 import { css, jsx } from '@emotion/core'
 
 import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
-import { IItemTheme } from '../Theme';
+import { IItemTheme } from '../../Theme';
 
 interface IItemBoxCalculatedSection {
   calculatedItem: ICalculatedItemLine[];

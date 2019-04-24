@@ -2,7 +2,7 @@ import * as React from 'react';
 /** @jsx jsx */
 import { css, jsx } from '@emotion/core'
 
-import { IItemTheme } from '../Theme';
+import { IItemTheme } from '../../Theme';
 
 export const ItemBoxSeparator = () => (
   <hr css={(theme: IItemTheme) => ({

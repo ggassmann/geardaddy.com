@@ -4,7 +4,7 @@ import { css, jsx } from '@emotion/core'
 import { ThemeProvider } from 'emotion-theming';
 
 import { IDisplayedItem } from 'src/data/IDisplayedItem';
-import { RareItemTheme, ItemTheme, IItemTheme, UniqueItemTheme } from '../Theme';
+import { RareItemTheme, ItemTheme, IItemTheme, UniqueItemTheme } from '../../Theme';
 import { ItemBoxSeparator } from './ItemBoxSeparator';
 import { ItemBoxModSection } from './ItemBoxModSection';
 import { ItemBoxCalculatedSection } from './ItemBoxCalculatedSection';

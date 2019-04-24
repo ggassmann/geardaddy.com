@@ -1,20 +1,17 @@
 import Bottleneck from "bottleneck";
 import path from 'path';
-import fs from 'fs';
+import util from 'util';
 import { spawn } from 'child_process';
+import { readFile } from 'fs';
+const fsReadFile = util.promisify(readFile);
+
 import { IDisplayedItem } from "src/data/IDisplayedItem";
 import { IPublicItem } from "src/data/IPublicItem";
-import { db as dbAsync } from "./db";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
-import { ONE_HAND_WEAPONS } from "src/data/WeaponCategories";
+import { settingsdb } from "./db";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
-
-const PathOfBuildingLUAPath = "C:\\Users\\ggassmann\\Downloads\\pob"
-const PathOfBuildingBuildsPath = "C:\\Users\\ggassmann\\Downloads\\pob\\Builds";
-const PathOfBuildingBuildName = "build3.xml";
-const PathOfBuildingBuildXML = fs.readFileSync(`${PathOfBuildingBuildsPath}/${PathOfBuildingBuildName}`).toString();
 
 export const PathOfBuildingLimiter = new Bottleneck({
   maxConcurrent: 4,
@@ -39,18 +36,18 @@ export const GetPathOfBuildingItem = (item: IPublicItem) => {
   ].join('\n');
 }
 
-export const GetCalculatedItemStats = async (item: IPublicItem): Promise<ICalculatedItemLine[]> => {
+export const GetCalculatedItemStats = async (item: IPublicItem, build: string): Promise<ICalculatedItemLine[]> => {
   return await new Promise((resolveCalculatedItem, rejectCalculatedItem) => {
-    PathOfBuildingLimiter.schedule(() => new Promise((resolveBottleneck, rejectBottleneck) => {
+    PathOfBuildingLimiter.schedule(() => new Promise(async (resolveBottleneck, rejectBottleneck) => {
       const MockItemProcess = spawn(
         LUAJitPath,
         [
           TestItemPath,
-          PathOfBuildingBuildXML,
+          build,
           GetPathOfBuildingItem(item)
         ],
         {
-          cwd: PathOfBuildingLUAPath
+          cwd: (await settingsdb).get('filesystem.pathofbuilding.lua_path').value(),
         }
       );
       const calculatedItem: ICalculatedItemLine[] = [];
@@ -59,7 +56,7 @@ export const GetCalculatedItemStats = async (item: IPublicItem): Promise<ICalcul
         let currentChunk: string;
         outputString.split('\n').forEach((chunk: string) => {
           const chunkInfo = chunk.split('|');
-          if(chunkInfo[0] === 'SLOT') {
+          if (chunkInfo[0] === 'SLOT') {
             currentChunk = chunkInfo[1].replace(/.+Equippingthisitemin(.+)willgiveyou.+/gm, '$1');
           } else {
             const changeInfo = chunkInfo[1];
@@ -89,12 +86,22 @@ export const GetCalculatedItemStats = async (item: IPublicItem): Promise<ICalcul
   });
 }
 
-export const buildItems = async (items: IPublicItem[]) => {
+export const getBuild = async (name: string) => {
+  const basePath = (await settingsdb).get('filesystem.pathofbuilding.builds_path').value();
+  const targetPath = `${path.resolve(
+    basePath,
+    `${name}.xml`
+  )}`;
+  const build = (await fsReadFile(targetPath)).toString();
+  return build;
+}
+
+export const buildItems = async (items: IPublicItem[], build: string) => {
   return await Promise.all(items.map(async (item) => {
     const displayedWeapon: IDisplayedItem = {
       id: item.id,
       baseItem: item,
-      calculatedItem: await GetCalculatedItemStats(item),
+      calculatedItem: await GetCalculatedItemStats(item, build),
     }
     return displayedWeapon;
   }));

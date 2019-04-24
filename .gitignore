@@ -29,4 +29,7 @@ node_modules
 
 
 dist/
-db.json
+items.json
+settings.json
+.~items.json
+.~settings.json
