@@ -24,6 +24,7 @@ export const settingsdb: Promise<LowdbAsync<any>> = low(new FileAsync('settings.
     performance: {
       pathofbuilding: {
         processcount: 4,
+        timeout: 6000,
       },
     },
     searches: [],

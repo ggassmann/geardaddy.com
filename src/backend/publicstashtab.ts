@@ -4,6 +4,7 @@ import { itemdb as dbAsync } from "./db";
 import { IPublicStashResponse } from "src/data/IPublicStashResponse";
 import { IPublicStash } from 'src/data/IPublicStash';
 import { IPublicItem } from 'src/data/IPublicItem';
+import Bottleneck from 'bottleneck';
 
 export class PublicStashData implements IPublicStashResponse {
   public error?: { code: number; message: string; } = undefined;
@@ -17,14 +18,22 @@ export class PublicStashData implements IPublicStashResponse {
   }
 }
 
+const PublicStashTabLimiter = new Bottleneck({
+  minTime: 2000,
+  maxConcurrent: 1,
+});
+
 export const getNextPublicStashData = async (): Promise<PublicStashData> => {
   const db = await dbAsync;
   let poeDataEndpoint = 'https://www.pathofexile.com/api/public-stash-tabs';
   if (db.get('nextChangeId').value()) {
     poeDataEndpoint += `?id=${db.get('nextChangeId').value()}`;
   }
-  console.log('did fetch');
-  const poeData: IPublicStashResponse = await (await fetch(poeDataEndpoint)).json();
+  
+  const poeData: IPublicStashResponse = await PublicStashTabLimiter.schedule(async () => {
+    console.log('fetching');
+    return await (await fetch(poeDataEndpoint)).json();
+  })
 
   if (poeData.error) {
     console.error('Error fetching public stash tabs. Code:', poeData.error.code, 'Message:', poeData.error.message, 'Trying again in 15 seconds');

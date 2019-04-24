@@ -19,7 +19,7 @@ import { IDisplayedItem } from '../data/IDisplayedItem';
 import { itemdb, settingsdb } from './db';
 import { FrameType } from '../data/FrameType';
 import { getNextPublicStashData } from './publicstashtab';
-import { buildItem, PathOfBuildingLimiter, getBuild } from './pathofbuilding';
+import { buildItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher } from './pathofbuilding';
 
 (async () => {
   const app = express();
@@ -170,13 +170,20 @@ import { buildItem, PathOfBuildingLimiter, getBuild } from './pathofbuilding';
       return false;
     });
     let itemsBuiltFromThisResponse = 0;
+    if(items.length === 0) {
+      await db.set('nextChangeId', stashData.next_change_id).write();
+      tick();
+    }
     for(let i = 0; i < items.length; i++) {
-      buildItem(items[i], build).then(async () => {
+      buildItem(items[i], build).then(async (item) => {
+        PathOfBuildingItemBatcher.add(item);
         itemsBuilt++;
         itemsBuiltFromThisResponse++;
 
         const itemsPerSecond = 1 / ((new Date().getTime() - timeStart.getTime()) / itemsBuilt / 1000);
-        console.log(numeral(itemsPerSecond).format('0,0.00'), 'items per second');
+        if(itemsBuilt % 10 === 0) {
+          console.log(numeral(itemsPerSecond).format('0,0.00'), `items per second (${itemsBuilt} total)`);
+        }
 
         if(itemsBuiltFromThisResponse === items.length) {
           await db.set('nextChangeId', stashData.next_change_id).write();

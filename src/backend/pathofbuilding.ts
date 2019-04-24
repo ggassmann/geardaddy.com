@@ -8,13 +8,23 @@ const fsReadFile = util.promisify(readFile);
 import { IDisplayedItem } from "src/data/IDisplayedItem";
 import { IPublicItem } from "src/data/IPublicItem";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
-import { settingsdb } from "./db";
+import { settingsdb, itemdb } from "./db";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
 
 export const PathOfBuildingLimiter = new Bottleneck({
   maxConcurrent: 4,
+});
+
+export const PathOfBuildingItemBatcher = new Bottleneck.Batcher({
+  maxTime: 5000,
+  maxSize: 3,
+});
+PathOfBuildingItemBatcher.on('batch', async (items: IDisplayedItem[]) => {
+  for(let i = 0; i < items.length; i++) {
+    await (await itemdb).get('items').push(items[i]).write();
+  };
 });
 
 export const GetPathOfBuildingItem = (item: IPublicItem) => {
@@ -48,39 +58,53 @@ export const GetCalculatedItemStats = async (item: IPublicItem, build: string): 
         ],
         {
           cwd: (await settingsdb).get('filesystem.pathofbuilding.lua_path').value(),
+          timeout: (await settingsdb).get('performance.pathofbuilding.timeout').value(),
         }
       );
       const calculatedItem: ICalculatedItemLine[] = [];
+      let collectedOut = '';
       MockItemProcess.stdout.on('data', (output) => {
-        const outputString = output.toString().trim();
-        let currentChunk: string;
-        outputString.split('\n').forEach((chunk: string) => {
-          const chunkInfo = chunk.split('|');
-          if (chunkInfo[0] === 'SLOT') {
-            currentChunk = chunkInfo[1].replace(/.+Equippingthisitemin(.+)willgiveyou.+/gm, '$1');
-          } else {
-            const changeInfo = chunkInfo[1];
-            const positive = chunkInfo[0] === 'true';
-            const changeAbsolute = parseFloat(changeInfo.split(' ')[0]);
-            const changeRelative = parseFloat(changeInfo.replace(/(.+\(|%\))/, ''));
-            const changeStatName = changeInfo.replace(/(-|\+)([^ ]+ )(.*?)(\(.+\n|\n|\(.+$|$)/gm, '$3');
-            calculatedItem.push({
-              positive,
-              changeAbsolute,
-              changeRelative,
-              changeStatName,
-              changeSlot: currentChunk,
-            });
-          }
-        });
+        try {
+          const outputString = output.toString().trim();
+          collectedOut += outputString;
+          let currentChunk: string;
+          outputString.split('\n').forEach((chunk: string) => {
+            const chunkInfo = chunk.split('|');
+            if (chunkInfo[0] === 'SLOT') {
+              currentChunk = chunkInfo[1].replace(/.+Equippingthisitemin(.+)willgiveyou.+/gm, '$1');
+            } else {
+              const changeInfo = chunkInfo[1];
+              const positive = chunkInfo[0] === 'true';
+              const changeAbsolute = parseFloat(changeInfo.split(' ')[0]);
+              const changeRelative = parseFloat(changeInfo.replace(/(.+\(|%\))/, ''));
+              const changeStatName = changeInfo.replace(/(-|\+)([^ ]+ )(.*?)(\(.+\n|\n|\(.+$|$)/gm, '$3');
+              calculatedItem.push({
+                positive,
+                changeAbsolute,
+                changeRelative,
+                changeStatName,
+                changeSlot: currentChunk,
+              });
+            }
+          });
+        } catch(e) {
+          console.error('Error processing lua output chunk', collectedOut);
+        }
       })
       MockItemProcess.stderr.on('data', (chunk) => {
         console.log(chunk.toString());
       })
+      const processTimeout = setTimeout(() => {
+        console.log(item, collectedOut);
+      }, 15000)
       MockItemProcess.on('close', (code) => {
-        console.log('Exited with code', code);
+        if(code !== 0) {
+          rejectBottleneck(code);
+          rejectCalculatedItem(code);
+        }
         resolveBottleneck();
         resolveCalculatedItem(calculatedItem);
+        clearTimeout(processTimeout);
       })
     }));
   });

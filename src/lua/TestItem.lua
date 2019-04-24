@@ -28,4 +28,6 @@ if item.base then
   end
   function tooltip:AddSeparator(_, _) end
 	build.itemsTab:AddItemTooltip(tooltip, item)
+else
+  print(ITEM_TEXT)
 end
