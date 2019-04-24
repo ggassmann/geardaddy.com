@@ -49,9 +49,7 @@ import { readFile } from 'fs';
   });
   app.get('/api/setting/:path', async (req, res) => {
     try {
-      console.log(req.params.path);
       const value = await (await settingsdb).get(req.params.path).value();
-      console.log(value);
       res.send({ success: true, value });
     } catch (e) {
       res.send({ success: false, error: e });

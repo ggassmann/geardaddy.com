@@ -25,6 +25,11 @@ export const SettingInput = ({ path }: ISettingInputProps) => {
     []
   );
   return (
-    <Input value={content} />
+    <div>
+      <div>
+        {path}
+      </div>
+      <Input value={content} />
+    </div>
   )
 }

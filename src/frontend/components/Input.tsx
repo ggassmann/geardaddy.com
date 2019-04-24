@@ -8,6 +8,11 @@ export interface IInputProps {
 
 export const Input = ({ value }: IInputProps) => {
   return (
-    <input value={value} />
+    <input
+      value={value}
+      css={css`
+        width: 500px; margin: 2px 10px;
+      `}
+    />
   )
 }

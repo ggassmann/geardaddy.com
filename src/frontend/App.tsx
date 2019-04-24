@@ -27,6 +27,7 @@ export const App = () => {
       </Helmet>
       <SettingInput path='filesystem.pathofbuilding.lua_path' />
       <SettingInput path='filesystem.pathofbuilding.builds_path' />
+      <SettingInput path='performance.pathofbuilding.processcount' />
       <SettingInput path='server.port' />
       <ThemeProvider theme={ItemTheme}>
         {items.map((item) => (
