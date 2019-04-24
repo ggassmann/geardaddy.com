@@ -22,6 +22,22 @@ import { readFile } from 'fs';
   PathOfBuildingLimiter.updateSettings({
     maxConcurrent: await (await settingsdb).get('performance.pathofbuilding.processcount').value(),
   });
+
+  const settingListeners: {path: string, func: (value: any) => Promise<{success: boolean, message?: string, error?: Error}>}[] = [];
+  const addSettingListener = (path: string, func: (value: any) => Promise<{success: boolean, message?: string, error?: Error}>) => {
+    settingListeners.push({
+      path, func
+    });
+  }
+  addSettingListener('performance.pathofbuilding.processcount', async (value) => {
+    PathOfBuildingLimiter.updateSettings({
+      maxConcurrent: value,
+    });
+    return {
+      success: true,
+    }
+  })
+
   app.get('/', (req, res) => {
     readFile(path.resolve(__dirname, 'frontend/index.html'), async (err, data) => {
       if (err) {
@@ -41,7 +57,11 @@ import { readFile } from 'fs';
   app.use(express.static(path.resolve(__dirname, 'frontend')));
   app.get('/api/setting/:path/:value', async (req, res) => {
     try {
-      await db.set(req.params.path, req.params.value).write();
+      const listeners = settingListeners.filter((x) => x.path === req.params.path);
+      listeners.forEach((listener) => {
+        listener.func(req.params.value);
+      })
+      await (await settingsdb).set(req.params.path, req.params.value).write();
       res.send({ success: true });
     } catch (e) {
       res.send({ success: false, error: e });

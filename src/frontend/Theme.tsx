@@ -1,3 +1,8 @@
+import * as React from 'react';
+React;
+
+import {Global as GLBL, css} from '@emotion/core';
+
 export interface IItemTheme {
   backgroundColor: string,
   fontColor: string,
@@ -29,3 +34,23 @@ export const UniqueItemTheme = (ancestorTheme: IItemTheme) => ({
   headerColor: 'rgba(175, 96, 37, 0.975)',
   separatorColor: 'rgba(175, 96, 37, 0.8)',
 });
+
+export const Global = () => {
+  return (
+    <GLBL
+      styles={css`
+        body {
+          margin: 0;
+          padding: 0;
+          font-size: 1rem;
+        }
+        input {
+          font-size: 1rem;
+        }
+        html {
+          font-size: 18px;
+        }
+      `}
+    />
+  );
+}

@@ -5,9 +5,9 @@ import { ThemeProvider } from 'emotion-theming'
 import { Helmet } from 'react-helmet';
 
 import { IDisplayedItem } from '../data/IDisplayedItem';
-import { ItemTheme } from './Theme';
+import { ItemTheme, Global } from './Theme';
 import { ItemBox } from './components/ItemBox/ItemBox';
-import { SettingInput } from './components/SettingInput';
+import { SettingInput } from './components/Input/SettingInput';
 
 export const App = () => {
   const [items, setItems] = React.useState<IDisplayedItem[]>([]);
@@ -25,6 +25,7 @@ export const App = () => {
         <meta charSet="utf-8" />
         <title>Gear Daddy</title>
       </Helmet>
+      <Global/>
       <SettingInput path='filesystem.pathofbuilding.lua_path' />
       <SettingInput path='filesystem.pathofbuilding.builds_path' />
       <SettingInput path='performance.pathofbuilding.processcount' />
