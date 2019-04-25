@@ -159,6 +159,7 @@ import { buildItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher }
   const tick = async () => {
     const stashData = await getNextPublicStashData();
     let items: IPublicItem[] = stashData.getItems();
+    items = items.filter((item) => item.identified);
     items = items.filter((item) => {
       if (item.category.weapons) {
         return ONE_HAND_WEAPONS.find((weaponCategory) => {
