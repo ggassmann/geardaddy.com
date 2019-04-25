@@ -1,9 +1,8 @@
 import fetch from 'node-fetch';
 
-import { itemdb as dbAsync } from "./db";
+import { legacyItemsDB as dbAsync } from "./db";
 import { IPublicStashResponse } from "src/data/IPublicStashResponse";
 import { IPublicStash } from 'src/data/IPublicStash';
-import { IPublicItem } from 'src/data/IPublicItem';
 import Bottleneck from 'bottleneck';
 
 export class PublicStashData implements IPublicStashResponse {

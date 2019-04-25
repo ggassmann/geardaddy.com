@@ -2,15 +2,19 @@ import Bottleneck from "bottleneck";
 import path from 'path';
 import util from 'util';
 import { spawn } from 'child_process';
-import { readFile } from 'fs';
-const fsReadFile = util.promisify(readFile);
+import fs from 'fs';
+import recursiveReaddir from 'recursive-readdir';
+const fsReadFile = util.promisify(fs.readFile);
+const fsAccess = util.promisify(fs.access);
+const fsReaddir = util.promisify<string, string[]>(recursiveReaddir);
 
 import { IDisplayedItem } from "src/data/IDisplayedItem";
 import { IPublicItem } from "src/data/IPublicItem";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
-import { settingsdb, itemdb } from "./db";
+import { settingsdb, legacyItemsDB } from "./db";
 import { getRarityFromFrameType } from "../data/FrameType";
 import { IPublicStash } from "src/data/IPublicStash";
+import { addSettingListener } from "./settings/settings";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
@@ -25,9 +29,56 @@ export const PathOfBuildingItemBatcher = new Bottleneck.Batcher({
 });
 PathOfBuildingItemBatcher.on('batch', async (items: IDisplayedItem[]) => {
   for(let i = 0; i < items.length; i++) {
-    await (await itemdb).get('items').push(items[i]).write();
+    await (await legacyItemsDB).get('items').push(items[i]).write();
   };
 });
+
+export const InitPathOfBuildingSettingsListeners = () => {
+  addSettingListener('performance.pathofbuilding.processcount', async (value) => {
+    PathOfBuildingLimiter.updateSettings({
+      maxConcurrent: value,
+    });
+    return {
+      success: true,
+    }
+  });
+
+  addSettingListener('filesystem.pathofbuilding.lua_path', async (value) => {
+    try {
+      await fsAccess(path.resolve(value, 'Launch.lua'));
+      await fsAccess(path.resolve(value, 'Modules/Build.lua'));
+      return {
+        success: true,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+        message: e.toString(),
+      }
+    }
+  });
+
+  addSettingListener('filesystem.pathofbuilding.builds_path', async (value) => {
+    try {
+      await fsAccess(value);
+      let contents: string[] = await fsReaddir(value);
+      let builds = contents.filter((file) => file.endsWith('.xml'));
+      if(builds.length === 0) {
+        throw new Error('No builds found');
+      }
+      return {
+        success: true,
+      }
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+        message: e.toString(),
+      }
+    }
+  });
+}
 
 export const GetPathOfBuildingItem = (item: IPublicItem) => {
   const itemQualityProperty = item.properties.find((property) => property.name === 'Quality');

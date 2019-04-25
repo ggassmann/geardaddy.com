@@ -2,11 +2,11 @@ import low, { LowdbAsync } from 'lowdb';
 import FileAsync from 'lowdb/adapters/FileAsync';
 import os from 'os';
 
-export const itemdb: Promise<LowdbAsync<any>> = low(new FileAsync('items.json'));
+export const legacyItemsDB: Promise<LowdbAsync<any>> = low(new FileAsync('items.json'));
 export const settingsdb: Promise<LowdbAsync<any>> = low(new FileAsync('settings.json'));
 
 (async () => {
-  (await itemdb).defaults({
+  (await legacyItemsDB).defaults({
     nextChangeId: undefined,
     totalStashesProcessed: 0,
     items: [],
@@ -14,6 +14,9 @@ export const settingsdb: Promise<LowdbAsync<any>> = low(new FileAsync('settings.
   (await settingsdb).defaults({
     server: {
       port: 42069,
+    },
+    solr: {
+      port: 8983
     },
     filesystem: {
       pathofbuilding: {
