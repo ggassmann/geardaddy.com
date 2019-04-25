@@ -10,6 +10,7 @@ import { IPublicItem } from "src/data/IPublicItem";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
 import { settingsdb, itemdb } from "./db";
 import { getRarityFromFrameType } from "../data/FrameType";
+import { IPublicStash } from "src/data/IPublicStash";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
@@ -123,11 +124,14 @@ export const getBuild = async (name: string) => {
   return build;
 }
 
-export const buildItem = async (item: IPublicItem, build: string) => {
+export const buildItem = async (stash: IPublicStash, item: IPublicItem, build: string) => {
+  const itemNotePrice = (item.note && item.note.startsWith('~') && item.note) || undefined;
+  const stashNotePrice = (stash.stash && stash.stash.startsWith('~') && stash.stash) || undefined;
   const displayedWeapon: IDisplayedItem = {
     id: item.id,
     baseItem: item,
     calculatedItem: await GetCalculatedItemStats(item, build),
+    price: itemNotePrice || stashNotePrice || 'No price listed',
   }
   return displayedWeapon;
 }

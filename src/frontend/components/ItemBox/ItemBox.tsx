@@ -70,6 +70,17 @@ export const ItemBox = ({ item }: IItemBoxProps) => {
         <ItemBoxModSection mods={item.baseItem.explicitMods} />
         <ItemBoxSeparator />
         <ItemBoxCalculatedSection calculatedItem={item.calculatedItem} />
+        <ItemBoxSeparator />
+        <p
+          css={(theme: IItemTheme) => ({
+            color: theme.propertyFontColor,
+            padding: '2px 8px',
+            textAlign: 'center',
+            margin: '4px',
+          })}
+        >
+          {item.price}
+        </p>
         {console.log(item)}
       </div>
     </ThemeProvider >

@@ -16,4 +16,6 @@ export interface IPublicItem {
   frameType: FrameType;
 
   properties: IPublicItemProperty[];
+
+  note: string;
 }

@@ -10,12 +10,6 @@ export class PublicStashData implements IPublicStashResponse {
   public error?: { code: number; message: string; } = undefined;
   public next_change_id: string = '';
   public stashes: IPublicStash[] = [];
-
-  public getItems = () => {
-    return this.stashes.reduce((prev: IPublicItem[], current: IPublicStash, _index, _array): IPublicItem[] => {
-      return [...prev, ...current.items];
-    }, []);
-  }
 }
 
 const PublicStashTabLimiter = new Bottleneck({

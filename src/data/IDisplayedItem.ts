@@ -5,4 +5,5 @@ export interface IDisplayedItem {
   id: string;
   baseItem: IPublicItem;
   calculatedItem: ICalculatedItemLine[];
+  price: string;
 }

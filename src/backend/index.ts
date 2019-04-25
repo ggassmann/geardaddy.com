@@ -158,39 +158,42 @@ import { buildItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher }
   let timeStart = new Date();
   const tick = async () => {
     const stashData = await getNextPublicStashData();
-    let items: IPublicItem[] = stashData.getItems();
-    items = items.filter((item) => item.identified);
-    items = items.filter((item) => {
-      if (item.category.weapons) {
-        return ONE_HAND_WEAPONS.find((weaponCategory) => {
-          const firstCatLine = item.category.weapons![0] || undefined;
-          const secondCatLine = item.category.weapons![1] || undefined;
-          return weaponCategory[0] == firstCatLine && weaponCategory[1] == secondCatLine;
-        });
+    for(let stashIndex = 0; stashIndex < stashData.stashes.length; stashIndex++) {
+      const stash = stashData.stashes[stashIndex];
+      let items = stash.items;
+      items = items.filter((item) => item.identified);
+      items = items.filter((item) => {
+        if (item.category.weapons) {
+          return ONE_HAND_WEAPONS.find((weaponCategory) => {
+            const firstCatLine = item.category.weapons![0] || undefined;
+            const secondCatLine = item.category.weapons![1] || undefined;
+            return weaponCategory[0] == firstCatLine && weaponCategory[1] == secondCatLine;
+          });
+        }
+        return false;
+      });
+      let itemsBuiltFromThisResponse = 0;
+      if(items.length === 0) {
+        await db.set('nextChangeId', stashData.next_change_id).write();
+        tick();
       }
-      return false;
-    });
-    let itemsBuiltFromThisResponse = 0;
-    if(items.length === 0) {
-      await db.set('nextChangeId', stashData.next_change_id).write();
-      tick();
-    }
-    for(let i = 0; i < items.length; i++) {
-      buildItem(items[i], build).then(async (item) => {
-        PathOfBuildingItemBatcher.add(item);
-        itemsBuilt++;
-        itemsBuiltFromThisResponse++;
+      for(let i = 0; i < items.length; i++) {
+        buildItem(stash, items[i], build).then(async (item) => {
+          PathOfBuildingItemBatcher.add(item);
+          itemsBuilt++;
+          itemsBuiltFromThisResponse++;
 
-        const itemsPerSecond = 1 / ((new Date().getTime() - timeStart.getTime()) / itemsBuilt / 1000);
-        if(itemsBuilt % 10 === 0) {
-          console.log(numeral(itemsPerSecond).format('0,0.00'), `items per second (${itemsBuilt} total)`);
-        }
+          const itemsPerSecond = 1 / ((new Date().getTime() - timeStart.getTime()) / itemsBuilt / 1000);
+          if(itemsBuilt % 10 === 0) {
+            console.log(numeral(itemsPerSecond).format('0,0.00'), `items per second (${itemsBuilt} total)`);
+          }
 
-        if(itemsBuiltFromThisResponse === items.length) {
-          await db.set('nextChangeId', stashData.next_change_id).write();
-          tick();
-        }
-      })
+          if(itemsBuiltFromThisResponse === items.length && stashIndex === stashData.stashes.length - 1) {
+            await db.set('nextChangeId', stashData.next_change_id).write();
+            tick();
+          }
+        })
+      }
     }
   }
   tick();
