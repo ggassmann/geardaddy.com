@@ -9,6 +9,7 @@ import { IDisplayedItem } from "src/data/IDisplayedItem";
 import { IPublicItem } from "src/data/IPublicItem";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
 import { settingsdb, itemdb } from "./db";
+import { getRarityFromFrameType } from "../data/FrameType";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
@@ -36,6 +37,7 @@ export const GetPathOfBuildingItem = (item: IPublicItem) => {
     ));
   }
   return [
+    `Rarity: ${getRarityFromFrameType(item.frameType)}`,
     item.name,
     item.typeLine,
     `Crafted: ${item.craftedMods && item.craftedMods.length > 0 || false}`,
@@ -49,12 +51,13 @@ export const GetPathOfBuildingItem = (item: IPublicItem) => {
 export const GetCalculatedItemStats = async (item: IPublicItem, build: string): Promise<ICalculatedItemLine[]> => {
   return await new Promise((resolveCalculatedItem, rejectCalculatedItem) => {
     PathOfBuildingLimiter.schedule(() => new Promise(async (resolveBottleneck, rejectBottleneck) => {
+      const pobItem = GetPathOfBuildingItem(item);
       const MockItemProcess = spawn(
         LUAJitPath,
         [
           TestItemPath,
           build,
-          GetPathOfBuildingItem(item)
+          pobItem,
         ],
         {
           cwd: (await settingsdb).get('filesystem.pathofbuilding.lua_path').value(),
@@ -95,7 +98,7 @@ export const GetCalculatedItemStats = async (item: IPublicItem, build: string): 
         console.log(chunk.toString());
       })
       const processTimeout = setTimeout(() => {
-        console.log(item, collectedOut);
+        console.log('Failed to process item before timeout', item, pobItem, collectedOut);
       }, 15000)
       MockItemProcess.on('close', (code) => {
         if(code !== 0) {

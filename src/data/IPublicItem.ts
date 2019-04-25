@@ -7,6 +7,7 @@ export interface IPublicItem {
   name: string;
   id: string;
   category: IPublicItemCategory;
+  identified: number;
 
   craftedMods: string[];
   implicitMods: string[];

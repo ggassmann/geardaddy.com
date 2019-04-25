@@ -11,15 +11,19 @@ export enum FrameType {
   'relic' = 9,
 }
 
-export enum ReverseFrameType {
-  'X0' = 'normal',
-  'X1' = 'magic',
-  'X2' = 'rare',
-  'X3' = 'unique',
-  'X4' = 'gem',
-  'X5' = 'currency',
-  'X6' = 'divination card',
-  'X7' = 'quest item',
-  'X8' = 'prophecy',
-  'X9' = 'relic',
+export const ReverseFrameType = [
+  'normal',
+  'magic',
+  'rare',
+  'unique',
+  'gem',
+  'currency',
+  'divination card',
+  'quest item',
+  'prophecy',
+  'relic',
+];
+
+export const getRarityFromFrameType = (frame: FrameType) => {
+  return ReverseFrameType[frame];
 }
