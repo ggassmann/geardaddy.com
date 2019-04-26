@@ -9,7 +9,7 @@ export interface ISolrItem {
   flavourText: string;
 
   //basic info
-  ivl: number;
+  ilvl: number;
   league: string;
   links: string;
   frameType: FrameType;
@@ -24,4 +24,5 @@ export interface ISolrItem {
   //mods
   implicitMods: string[];
   explicitMods: string[];
+  craftedMods: string[];
 }

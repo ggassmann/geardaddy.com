@@ -8,6 +8,8 @@ import util from 'util';
 import { spawn } from 'child_process';
 import unzipper from 'unzipper';
 import { settingsdb } from './db';
+import { IPublicItem } from 'src/data/IPublicItem';
+import { ISolrItem } from 'src/data/ISolrItem';
 
 const solrDownloadLocation = 'http://apache.mirrors.ionfish.org/lucene/solr/8.0.0/solr-8.0.0.tgz';
 const javaDownloadLocation = 'https://d3pxv6yz143wms.cloudfront.net/8.212.04.2/amazon-corretto-8.212.04.2-windows-x64-jre.zip';
@@ -113,3 +115,23 @@ export const killSolr = async () => {
   });
 }
 
+const publicItemToSolrItem = (item: IPublicItem): ISolrItem => {
+  const categoryPropertyOne = Object.keys(item.category)[0];
+  const categoryPropertyTwo = item.category[categoryPropertyOne];
+  const itemCategoryString = categoryPropertyOne + (categoryPropertyTwo && `|${categoryPropertyTwo}` || '');
+  return {
+    name: item.name,
+    typeLine: item.typeLine,
+    icon: item.icon,
+    category: itemCategoryString,
+    flavourText: item.flavourText,
+    
+    ilvl: item.ilvl,
+
+    craftedMods: item.craftedMods,
+    explicitMods: item.explicitMods,
+    implicitMods: item.implicitMods,
+
+
+  }
+}

@@ -8,6 +8,9 @@ export interface IPublicItem {
   id: string;
   category: IPublicItemCategory;
   identified: number;
+  icon: string;
+  flavourText: string;
+  ilvl: number;
 
   craftedMods: string[];
   implicitMods: string[];

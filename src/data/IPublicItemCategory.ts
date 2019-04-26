@@ -11,5 +11,5 @@ export type IPublicItemWeapons = (
 );
 
 export interface IPublicItemCategory {
-  weapons?: IPublicItemWeapons;
+  [index: string]: string[];
 }
