@@ -33,3 +33,5 @@ items.json
 settings.json
 .~items.json
 .~settings.json
+
+!.vscode/settings.json
