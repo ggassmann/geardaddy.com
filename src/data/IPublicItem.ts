@@ -11,6 +11,7 @@ export interface IPublicItem {
   icon: string;
   flavourText: string;
   ilvl: number;
+  league: string;
 
   craftedMods: string[];
   implicitMods: string[];

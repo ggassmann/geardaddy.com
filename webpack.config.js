@@ -12,6 +12,9 @@ module.exports = [{
   },
   target: 'node',
   resolve: {
+    alias: {
+      'src': path.resolve(__dirname, 'src'),
+    },
     extensions: ['.ts', '.js', '.json', '.tsx']
   },
   node: {
@@ -42,6 +45,9 @@ module.exports = [{
     path: path.resolve(__dirname, 'dist/frontend')
   },
   resolve: {
+    alias: {
+      'src': path.resolve(__dirname, 'src'),
+    },
     extensions: ['.ts', '.js', '.json', '.tsx']
   },
   node: {

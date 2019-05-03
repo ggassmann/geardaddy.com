@@ -8,9 +8,9 @@ temp.track();
 
 import { ONE_HAND_WEAPONS } from '../data/WeaponCategories';
 import { legacyItemsDB, settingsdb } from './db';
-import { getNextPublicStashData } from './publicstashtab';
+import { getNextPublicStashData, startPublicStashBuilder } from './publicstashtab';
 import { buildItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners } from './pathofbuilding';
-import { downloadSolr, startSolr, killSolr, downloadJava } from './solr';
+import { downloadSolr, startSolr, killSolr, downloadJava } from './solr/solr';
 import { webserver } from './webserver/webserver';
 
 (async () => {
@@ -27,7 +27,7 @@ import { webserver } from './webserver/webserver';
 
   InitPathOfBuildingSettingsListeners();
   webserver.start();
-  
+
   const db = await legacyItemsDB;
 
   PathOfBuildingLimiter.updateSettings({
@@ -44,7 +44,7 @@ import { webserver } from './webserver/webserver';
   let timeStart = new Date();
   const tick = async () => {
     const stashData = await getNextPublicStashData();
-    for(let stashIndex = 0; stashIndex < stashData.stashes.length; stashIndex++) {
+    for (let stashIndex = 0; stashIndex < stashData.stashes.length; stashIndex++) {
       const stash = stashData.stashes[stashIndex];
       let items = stash.items;
       items = items.filter((item) => item.identified);
@@ -59,22 +59,22 @@ import { webserver } from './webserver/webserver';
         return false;
       });
       let itemsBuiltFromThisResponse = 0;
-      if(items.length === 0) {
+      if (items.length === 0) {
         await db.set('nextChangeId', stashData.next_change_id).write();
         tick();
       }
-      for(let i = 0; i < items.length; i++) {
+      for (let i = 0; i < items.length; i++) {
         buildItem(stash, items[i], build).then(async (item) => {
           PathOfBuildingItemBatcher.add(item);
           itemsBuilt++;
           itemsBuiltFromThisResponse++;
 
           const itemsPerSecond = 1 / ((new Date().getTime() - timeStart.getTime()) / itemsBuilt / 1000);
-          if(itemsBuilt % 10 === 0) {
+          if (itemsBuilt % 10 === 0) {
             console.log(numeral(itemsPerSecond).format('0,0.00'), `items per second (${itemsBuilt} total)`);
           }
 
-          if(itemsBuiltFromThisResponse === items.length && stashIndex === stashData.stashes.length - 1) {
+          if (itemsBuiltFromThisResponse === items.length && stashIndex === stashData.stashes.length - 1) {
             await db.set('nextChangeId', stashData.next_change_id).write();
             tick();
           }
@@ -82,6 +82,5 @@ import { webserver } from './webserver/webserver';
       }
     }
   }
-  //tick();
-  console.log(await getNextPublicStashData());
+  startPublicStashBuilder();
 })();

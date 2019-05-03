@@ -4,6 +4,8 @@ import { legacyItemsDB as dbAsync } from "./db";
 import { IPublicStashResponse } from "src/data/IPublicStashResponse";
 import { IPublicStash } from 'src/data/IPublicStash';
 import Bottleneck from 'bottleneck';
+import { publicItemToSolrItem } from './solr/solr';
+import { FrameType } from 'src/data/FrameType';
 
 export class PublicStashData implements IPublicStashResponse {
   public error?: { code: number; message: string; } = undefined;
@@ -22,7 +24,7 @@ export const getNextPublicStashData = async (): Promise<PublicStashData> => {
   if (db.get('nextChangeId').value()) {
     poeDataEndpoint += `?id=${db.get('nextChangeId').value()}`;
   }
-  
+
   const poeData: IPublicStashResponse = await PublicStashTabLimiter.schedule(async () => {
     console.log('fetching');
     return await (await fetch(poeDataEndpoint)).json();
@@ -42,4 +44,18 @@ export const getNextPublicStashData = async (): Promise<PublicStashData> => {
   );
 
   return Object.assign(new PublicStashData, poeData);
+}
+
+const tickPublicStashBuilder = async () => {
+  const stashData = await getNextPublicStashData();
+  let items = stashData.stashes.map((stash) => stash.items).reduce((prevItems, currentItems, currentIndex, arr) => {
+    return [...prevItems, ...currentItems];
+  }, []);
+  items = items.filter((item) => item.frameType === FrameType.rare);
+  const solrItem = publicItemToSolrItem(items[0]);
+  console.log(solrItem);
+}
+
+export const startPublicStashBuilder = () => {
+  tickPublicStashBuilder();
 }

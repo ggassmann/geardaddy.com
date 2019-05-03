@@ -7,13 +7,14 @@ export interface ISolrItem {
   icon: string;
   category: string;
   flavourText: string;
+  id: string;
 
   //basic info
   ilvl: number;
   league: string;
   links: string;
   frameType: FrameType;
-  
+
   //json info
   properties: string;
 

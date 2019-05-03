@@ -25,11 +25,12 @@ export const App = () => {
         <meta charSet="utf-8" />
         <title>Gear Daddy</title>
       </Helmet>
-      <Global/>
+      <Global />
       <SettingInput path='filesystem.pathofbuilding.lua_path' />
       <SettingInput path='filesystem.pathofbuilding.builds_path' />
       <SettingInput path='performance.pathofbuilding.processcount' />
       <SettingInput path='server.port' />
+      <SettingInput path='solr.port' />
       <ThemeProvider theme={ItemTheme}>
         {items.map((item) => (
           <ItemBox item={item} key={item.id} />
