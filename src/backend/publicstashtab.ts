@@ -1,11 +1,12 @@
 import fetch from 'node-fetch';
+import Bottleneck from 'bottleneck';
 
 import { legacyItemsDB as dbAsync } from "./db";
 import { IPublicStashResponse } from "src/data/IPublicStashResponse";
 import { IPublicStash } from 'src/data/IPublicStash';
-import Bottleneck from 'bottleneck';
-import { publicItemToSolrItem } from './solr/solr';
 import { FrameType } from 'src/data/FrameType';
+import { publicItemToSolrItem } from './solr/publicItemToSolrItem';
+import { submitItemToSolr } from './solr/solr';
 
 export class PublicStashData implements IPublicStashResponse {
   public error?: { code: number; message: string; } = undefined;
@@ -53,9 +54,9 @@ const tickPublicStashBuilder = async () => {
   }, []);
   items = items.filter((item) => item.frameType === FrameType.rare);
   const solrItem = publicItemToSolrItem(items[0]);
-  console.log(solrItem);
+  submitItemToSolr(solrItem);
 }
 
-export const startPublicStashBuilder = () => {
+export const startPublicStashBuilder = async () => {
   tickPublicStashBuilder();
 }

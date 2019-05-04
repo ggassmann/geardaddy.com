@@ -15,7 +15,7 @@ module.exports = [{
     alias: {
       'src': path.resolve(__dirname, 'src'),
     },
-    extensions: ['.ts', '.js', '.json', '.tsx']
+    extensions: ['.ts', '.js', '.json', '.tsx', '.xml', '.txt']
   },
   node: {
     __dirname: false,
@@ -28,6 +28,9 @@ module.exports = [{
       test: /\.js$/,
       use: ["source-map-loader"],
       enforce: "pre"
+    }, {
+      test: /\.(xml|txt)$/,
+      use: ["file-loader"],
     }]
   },
   plugins: [
@@ -48,7 +51,7 @@ module.exports = [{
     alias: {
       'src': path.resolve(__dirname, 'src'),
     },
-    extensions: ['.ts', '.js', '.json', '.tsx']
+    extensions: ['.ts', '.js', '.json', '.tsx', '.xml', '.txt']
   },
   node: {
     __dirname: false,
@@ -61,6 +64,9 @@ module.exports = [{
       test: /\.js$/,
       use: ["source-map-loader"],
       enforce: "pre"
+    }, {
+      test: /\.(xml|txt)$/,
+      use: ["file-loader"],
     }]
   },
   plugins: [

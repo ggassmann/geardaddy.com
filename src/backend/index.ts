@@ -10,8 +10,9 @@ import { ONE_HAND_WEAPONS } from '../data/WeaponCategories';
 import { legacyItemsDB, settingsdb } from './db';
 import { getNextPublicStashData, startPublicStashBuilder } from './publicstashtab';
 import { buildItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners } from './pathofbuilding';
-import { downloadSolr, startSolr, killSolr, downloadJava } from './solr/solr';
+import { startSolr, killSolr } from './solr/solr';
 import { webserver } from './webserver/webserver';
+import { downloadJava, downloadSolr } from './solr/download';
 
 (async () => {
   const shutdown = async () => {
