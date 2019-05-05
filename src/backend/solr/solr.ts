@@ -91,6 +91,23 @@ export const submitItemsToSolr = async (items: ISolrItem[]) => {
   };
 }
 
+export const submitSolrItemSubmission = async (solrItemId: string, queryId: string) => {
+  return await (await fetch(`${await getSolrAddress()}solr-item/update/json?commit=true`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      add: {
+        doc: {
+          id: solrItemId,
+          submittedQueryIds: {add: [queryId]}
+        },
+      },
+    }),
+  })).json();
+}
+
 export const getSolrItemPage = async (excludeQueryId: string) => {
   const solrResponse = (
     await (
@@ -100,10 +117,14 @@ export const getSolrItemPage = async (excludeQueryId: string) => {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded ',
           },
-          body: `q=*:* AND NOT submittedQueryIds:${excludeQueryId} &rows: 8`,
+          body: `q=*:* AND NOT submittedQueryIds:${excludeQueryId}&rows: 8`,
         }
       )
     ).json()
   );
-  return solrResponse.response.docs;
+  try {
+    return solrResponse.response.docs;
+  } catch(e) {
+    console.error('Error getting solr item page', e);
+  }
 }

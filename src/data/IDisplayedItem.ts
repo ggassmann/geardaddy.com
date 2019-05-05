@@ -6,4 +6,5 @@ export interface IDisplayedItem {
   baseItem: ISolrItem;
   calculatedItem: ICalculatedItemLine[];
   price: string;
+  queryId: string;
 }

@@ -16,6 +16,7 @@
   <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
   <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
   <fieldType name="binary" class="solr.BinaryField"/>
+  <fieldType name="uuid" class="solr.UUIDField" indexed="true" />
 
   <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
     <analyzer type="index">
@@ -33,6 +34,7 @@
   
   <field name="_version_" type="plong" indexed="false" stored="false" />
   <field name="submittedQueryIds" type="strings" stored="true" indexed="true" multiValued="true" />
+  <uniqueKey>id</uniqueKey>
 
   <REPLACE_ME_THROUGH_JAVASCRIPT_BACKEND/>
 </schema>

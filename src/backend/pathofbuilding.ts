@@ -15,6 +15,7 @@ import { getRarityFromFrameType } from "../data/FrameType";
 import { addSettingListener } from "./settings/settings";
 import { ISolrItem } from "src/data/ISolrItem";
 import { IPublicItemProperty } from "src/data/IPublicItemProperties";
+import { submitSolrItemSubmission } from "./solr/solr";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
@@ -30,6 +31,7 @@ export const PathOfBuildingItemBatcher = new Bottleneck.Batcher({
 PathOfBuildingItemBatcher.on('batch', async (items: IDisplayedItem[]) => {
   for (let i = 0; i < items.length; i++) {
     await (await itemsdb).get('items').push(items[i]).write();
+    await submitSolrItemSubmission(items[i].id, items[i].queryId);
   };
 });
 

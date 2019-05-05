@@ -14,6 +14,7 @@ import { downloadJava, downloadSolr } from './solr/download';
 import { IDisplayedItem } from 'src/data/IDisplayedItem';
 import { ISolrItem } from 'src/data/ISolrItem';
 import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
+import { IQuery } from 'src/data/IQuery';
 
 (async () => {
   const shutdown = async () => {
@@ -45,22 +46,26 @@ import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
   startPublicStashBuilder();
   const queryMap = (await querydb).get('queries').value();
   const queryIds = Object.keys(queryMap)
-  const queries = queryIds.map((queryId) => queryMap[queryId]);
+  const queries: IQuery[] = queryIds.map((queryId) => queryMap[queryId]);
   queries.forEach(async (query) => {
-    const solrItems: ISolrItem[] = await getSolrItemPage(query.id);
-    const builtItems: ICalculatedItemLine[][] = await Promise.all(
-      solrItems.map(
-        async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
-      )
-    );
-    await Promise.all(builtItems.map(async (_item, index) => {
-      const newItem: IDisplayedItem = {
-        id: solrItems[index].id,
-        baseItem: solrItems[index],
-        calculatedItem: builtItems[index],
-        price: '',
-      };
-      await PathOfBuildingItemBatcher.add(newItem);
-    }));
+    while(true) {
+      const solrItems: ISolrItem[] = await getSolrItemPage(query.id);
+      const builtItems: ICalculatedItemLine[][] = await Promise.all(
+        solrItems.map(
+          async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
+        )
+      );
+      await Promise.all(builtItems.map(async (_item, index) => {
+        const newItem: IDisplayedItem = {
+          id: solrItems[index].id,
+          baseItem: solrItems[index],
+          calculatedItem: builtItems[index],
+          price: '',
+          queryId: query.id,
+        };
+        await PathOfBuildingItemBatcher.add(newItem);
+      }));
+      console.log('finished item batch');
+    }
   })
 })();
