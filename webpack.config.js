@@ -37,6 +37,7 @@ module.exports = [{
     new CopyPlugin([
       { from: '*', to: 'lua', context: 'src/lua' },
       { from: '*', to: 'include', context: 'bin/' },
+      { from: '*', to: 'include/lua', context: 'bin/lua' },
     ])
   ]
 }, {

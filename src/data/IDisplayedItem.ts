@@ -1,9 +1,9 @@
-import { IPublicItem } from "./IPublicItem";
 import { ICalculatedItemLine } from "./ICalculatedItemLine";
+import { ISolrItem } from "./ISolrItem";
 
 export interface IDisplayedItem {
   id: string;
-  baseItem: IPublicItem;
+  baseItem: ISolrItem;
   calculatedItem: ICalculatedItemLine[];
   price: string;
 }

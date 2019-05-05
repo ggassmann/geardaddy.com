@@ -6,6 +6,7 @@ import { settingsdb } from '../db';
 import { cores } from './cores';
 import { setupSolrConfig } from './solrconfig';
 import { ISolrItem } from 'src/data/ISolrItem';
+import { response } from 'express';
 
 export const getSolrAddress = async () => {
   return `http://localhost:${(await settingsdb).get('solr.port').value()}/solr/`;
@@ -24,9 +25,9 @@ export const startSolr = async () => {
       shell: true,
     });
     solr.stdout.on('data', async (chunk) => {
-      if(chunk.toString().startsWith('Started Solr server')) {
+      if (chunk.toString().startsWith('Started Solr server')) {
         const initialItemCoreStatus = await cores.getCoreStatus('solr-item');
-        if(Object.keys(initialItemCoreStatus).length === 0) {
+        if (Object.keys(initialItemCoreStatus).length === 0) {
           await cores.createCore('solr-item', 'solr-item', 'solrconfig.xml', 'schema.xml', 'data');
         }
         console.log('started solr');
@@ -63,15 +64,39 @@ export const killSolr = async () => {
   });
 }
 
-export const submitItemToSolr = async (item: ISolrItem) => {
-  const submitResponse = await fetch(`${await getSolrAddress()}solr-item/update`, {
+export const submitItemsToSolr = async (items: ISolrItem[]) => {
+  const deleteResponse = await fetch(`${await getSolrAddress()}solr-item/update`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      add: {doc: item, commitWithin: 1000, overwrite: true},
+      delete: { "query": `id:${items.map((item) => item.id).join(' OR id:')}` },
     }),
   });
-  console.log(await submitResponse.json());
+  const submitResponses = await Promise.all((await Promise.all(items.map(async (item) => {
+    return await fetch(`${await getSolrAddress()}solr-item/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        add: { doc: item, commitWithin: 2500, overwrite: true },
+      }),
+    });
+  }))).map(async (response) => await response.json()));
+  return {
+    deleteResult: deleteResponse,
+    submitResult: submitResponses,
+  };
+}
+
+export const getSolrItemPage = async (excludedIds: string[]) => {
+  return (
+    await (
+      await fetch(
+        `${await getSolrAddress()}solr-item/query?q=*:*${excludedIds.length > 0 && ` NOT (id:${excludedIds.join(' OR id:')})` || ''}&rows=100`
+      )
+    ).json()
+  ).response.docs;
 }

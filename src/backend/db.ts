@@ -2,11 +2,11 @@ import low, { LowdbAsync } from 'lowdb';
 import FileAsync from 'lowdb/adapters/FileAsync';
 import os from 'os';
 
-export const legacyItemsDB: Promise<LowdbAsync<any>> = low(new FileAsync('items.json'));
+export const itemsdb: Promise<LowdbAsync<any>> = low(new FileAsync('items.json'));
 export const settingsdb: Promise<LowdbAsync<any>> = low(new FileAsync('settings.json'));
 
 (async () => {
-  (await legacyItemsDB).defaults({
+  (await itemsdb).defaults({
     nextChangeId: undefined,
     totalStashesProcessed: 0,
     items: [],

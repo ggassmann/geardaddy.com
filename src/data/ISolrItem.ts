@@ -6,7 +6,7 @@ export interface ISolrItem {
   typeLine: string;
   icon: string;
   category: string;
-  flavourText: string;
+  flavourText?: string;
   id: string;
 
   //basic info

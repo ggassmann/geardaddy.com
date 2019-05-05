@@ -9,7 +9,7 @@ export interface IPublicItem {
   category: IPublicItemCategory;
   identified: number;
   icon: string;
-  flavourText: string;
+  flavourText: string[];
   ilvl: number;
   league: string;
 

@@ -8,6 +8,7 @@ import { RareItemTheme, ItemTheme, IItemTheme, UniqueItemTheme } from '../../The
 import { ItemBoxSeparator } from './ItemBoxSeparator';
 import { ItemBoxModSection } from './ItemBoxModSection';
 import { ItemBoxCalculatedSection } from './ItemBoxCalculatedSection';
+import { IPublicItemProperty } from 'src/data/IPublicItemProperties';
 
 export interface IItemBoxProps {
   item: IDisplayedItem,
@@ -57,10 +58,10 @@ export const ItemBox = ({ item }: IItemBoxProps) => {
             margin: '4px',
           })}
         >
-          {item.baseItem.properties.map((property, propertyIndex) => (
+          {item.baseItem.properties && JSON.parse(item.baseItem.properties).map((property: IPublicItemProperty, propertyIndex: number) => (
             <React.Fragment key={property.type}>
               {property.name}{property.values.length > 0 && ':'} {property.values.map((value) => value[0]).join(' ')}
-              {propertyIndex < item.baseItem.properties.length - 1 && <br/>}
+              {propertyIndex < item.baseItem.properties.length - 1 && <br />}
             </React.Fragment>
           ))}
         </p>

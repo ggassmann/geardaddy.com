@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { readFile } from 'fs';
 
-import { settingsdb, legacyItemsDB } from '../db';
+import { settingsdb, itemsdb } from '../db';
 import { IDisplayedItem } from 'src/data/IDisplayedItem';
 import { FrameType } from '../../data/FrameType';
 import { settingListeners } from '../settings/settings';
@@ -30,8 +30,8 @@ const init = async (app: express.Express) => {
       const listeners = settingListeners.filter((x) => x.path === req.params.path);
       const results = await Promise.all(listeners.map(async (listener) => await listener.func(req.params.value)));
       const failures = results.filter((result) => !result.success);
-      if(failures.length > 0) {
-        res.send({success: false, errors: failures.map((failure) => failure.message)});
+      if (failures.length > 0) {
+        res.send({ success: false, errors: failures.map((failure) => failure.message) });
       } else {
         await (await settingsdb).set(req.params.path, req.params.value).write();
         res.send({ success: true });
@@ -50,7 +50,7 @@ const init = async (app: express.Express) => {
   });
   app.get('/api/items', async (req, res) => {
     res.send(
-      (await legacyItemsDB).get('items')
+      (await itemsdb).get('items')
         .filter((item: IDisplayedItem) => (
           item.baseItem.frameType === FrameType.rare
         ))

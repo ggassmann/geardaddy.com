@@ -9,12 +9,12 @@ const fsAccess = util.promisify(fs.access);
 const fsReaddir = util.promisify<string, string[]>(recursiveReaddir);
 
 import { IDisplayedItem } from "src/data/IDisplayedItem";
-import { IPublicItem } from "src/data/IPublicItem";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
-import { settingsdb, legacyItemsDB } from "./db";
+import { settingsdb, itemsdb } from "./db";
 import { getRarityFromFrameType } from "../data/FrameType";
-import { IPublicStash } from "src/data/IPublicStash";
 import { addSettingListener } from "./settings/settings";
+import { ISolrItem } from "src/data/ISolrItem";
+import { IPublicItemProperty } from "src/data/IPublicItemProperties";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
@@ -28,8 +28,8 @@ export const PathOfBuildingItemBatcher = new Bottleneck.Batcher({
   maxSize: 3,
 });
 PathOfBuildingItemBatcher.on('batch', async (items: IDisplayedItem[]) => {
-  for(let i = 0; i < items.length; i++) {
-    await (await legacyItemsDB).get('items').push(items[i]).write();
+  for (let i = 0; i < items.length; i++) {
+    await (await itemsdb).get('items').push(items[i]).write();
   };
 });
 
@@ -64,7 +64,7 @@ export const InitPathOfBuildingSettingsListeners = () => {
       await fsAccess(value);
       let contents: string[] = await fsReaddir(value);
       let builds = contents.filter((file) => file.endsWith('.xml'));
-      if(builds.length === 0) {
+      if (builds.length === 0) {
         throw new Error('No builds found');
       }
       return {
@@ -80,8 +80,10 @@ export const InitPathOfBuildingSettingsListeners = () => {
   });
 }
 
-export const GetPathOfBuildingItem = (item: IPublicItem) => {
-  const itemQualityProperty = item.properties.find((property) => property.name === 'Quality');
+export const GetPathOfBuildingItemFromSolrItem = (item: ISolrItem) => {
+  const itemQualityProperty = item.properties &&
+    JSON.parse(item.properties).find((property: IPublicItemProperty) => property.name === 'Quality')
+    || undefined;
   let itemQuality = 20;
   if (itemQualityProperty) {
     itemQuality = Math.max(20, parseInt(
@@ -100,10 +102,10 @@ export const GetPathOfBuildingItem = (item: IPublicItem) => {
   ].join('\n');
 }
 
-export const GetCalculatedItemStats = async (item: IPublicItem, build: string): Promise<ICalculatedItemLine[]> => {
+export const BuildCalculatedItemFromSolrItem = async (item: ISolrItem, build: string): Promise<ICalculatedItemLine[]> => {
   return await new Promise((resolveCalculatedItem, rejectCalculatedItem) => {
     PathOfBuildingLimiter.schedule(() => new Promise(async (resolveBottleneck, rejectBottleneck) => {
-      const pobItem = GetPathOfBuildingItem(item);
+      const pobItem = GetPathOfBuildingItemFromSolrItem(item);
       const MockItemProcess = spawn(
         LUAJitPath,
         [
@@ -142,7 +144,7 @@ export const GetCalculatedItemStats = async (item: IPublicItem, build: string): 
               });
             }
           });
-        } catch(e) {
+        } catch (e) {
           console.error('Error processing lua output chunk', collectedOut);
         }
       })
@@ -153,7 +155,7 @@ export const GetCalculatedItemStats = async (item: IPublicItem, build: string): 
         console.log('Failed to process item before timeout', item, pobItem, collectedOut);
       }, 15000)
       MockItemProcess.on('close', (code) => {
-        if(code !== 0) {
+        if (code !== 0) {
           rejectBottleneck(code);
           rejectCalculatedItem(code);
         }
@@ -173,16 +175,4 @@ export const getBuild = async (name: string) => {
   )}`;
   const build = (await fsReadFile(targetPath)).toString();
   return build;
-}
-
-export const buildItem = async (stash: IPublicStash, item: IPublicItem, build: string) => {
-  const itemNotePrice = (item.note && item.note.startsWith('~') && item.note) || undefined;
-  const stashNotePrice = (stash.stash && stash.stash.startsWith('~') && stash.stash) || undefined;
-  const displayedWeapon: IDisplayedItem = {
-    id: item.id,
-    baseItem: item,
-    calculatedItem: await GetCalculatedItemStats(item, build),
-    price: itemNotePrice || stashNotePrice || 'No price listed',
-  }
-  return displayedWeapon;
 }

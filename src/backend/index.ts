@@ -7,12 +7,15 @@ import temp from 'temp';
 temp.track();
 
 import { ONE_HAND_WEAPONS } from '../data/WeaponCategories';
-import { legacyItemsDB, settingsdb } from './db';
+import { itemsdb, settingsdb } from './db';
 import { getNextPublicStashData, startPublicStashBuilder } from './publicstashtab';
-import { buildItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners } from './pathofbuilding';
-import { startSolr, killSolr } from './solr/solr';
+import { buildPathOfBuildingItemFromSolrItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners, BuildCalculatedItemFromSolrItem } from './pathofbuilding';
+import { startSolr, killSolr, getSolrItemPage } from './solr/solr';
 import { webserver } from './webserver/webserver';
 import { downloadJava, downloadSolr } from './solr/download';
+import { IDisplayedItem } from 'src/data/IDisplayedItem';
+import { ISolrItem } from 'src/data/ISolrItem';
+import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
 
 (async () => {
   const shutdown = async () => {
@@ -29,7 +32,7 @@ import { downloadJava, downloadSolr } from './solr/download';
   InitPathOfBuildingSettingsListeners();
   webserver.start();
 
-  const db = await legacyItemsDB;
+  const db = await itemsdb;
 
   PathOfBuildingLimiter.updateSettings({
     maxConcurrent: await (await settingsdb).get('performance.pathofbuilding.processcount').value(),
@@ -44,7 +47,6 @@ import { downloadJava, downloadSolr } from './solr/download';
   let itemsBuilt = 0;
   let timeStart = new Date();
   const tick = async () => {
-    const stashData = await getNextPublicStashData();
     for (let stashIndex = 0; stashIndex < stashData.stashes.length; stashIndex++) {
       const stash = stashData.stashes[stashIndex];
       let items = stash.items;
@@ -65,7 +67,7 @@ import { downloadJava, downloadSolr } from './solr/download';
         tick();
       }
       for (let i = 0; i < items.length; i++) {
-        buildItem(stash, items[i], build).then(async (item) => {
+        buildPathOfBuildingItemFromSolrItem(stash, items[i], build).then(async (item) => {
           PathOfBuildingItemBatcher.add(item);
           itemsBuilt++;
           itemsBuiltFromThisResponse++;
@@ -84,4 +86,19 @@ import { downloadJava, downloadSolr } from './solr/download';
     }
   }
   startPublicStashBuilder();
+  const solrItems: ISolrItem[] = await getSolrItemPage([]);
+  const builtItems: ICalculatedItemLine[][] = await Promise.all(
+    solrItems.map(
+      async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
+    )
+  );
+  builtItems.forEach((_item, index) => {
+    const newItem: IDisplayedItem = {
+      id: solrItems[index].id,
+      baseItem: solrItems[index],
+      calculatedItem: builtItems[index],
+      price: '',
+    };
+    PathOfBuildingItemBatcher.add(newItem);
+  })
 })();
