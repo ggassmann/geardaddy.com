@@ -1,6 +1,8 @@
 import * as React from 'react';
-/** @jsx jsx */
-import { css as style, jsx, keyframes } from '@emotion/core'
+React;
+import styled, { css, keyframes } from 'styled-components';
+
+import { SettingAddonContainer } from './SettingAddonContainer';
 
 const spin = keyframes`
   0% { transform: rotate(0deg); }
@@ -12,17 +14,17 @@ export interface ISpinnerProps {
   margin: string;
 }
 
-export const Spinner = ({size, margin}: ISpinnerProps) => {
-  return (
-    <div css={style`
-      border: calc(${size} * .17) solid #f3f3f3;
-      border-top: calc(${size} * .17) solid #3498db;
-      width: calc(${size} * .8 - ${margin});
-      height: calc(${size} * .8 - ${margin});
-      border-radius: 50%;
-      margin: ${margin};
-      animation ${spin} 0.7s linear infinite;
-      pointer-events: none;
-    `}/>
-  )
-}
+export const SpinnerElement = styled.div<ISpinnerProps>`
+  ${({size, margin}) => css`
+    border: calc(${size} * .17) solid #f3f3f3;
+    border-top: calc(${size} * .17) solid #3498db;
+    width: calc(${size} * .8 - ${margin});
+    height: calc(${size} * .8 - ${margin});
+    border-radius: 50%;
+    margin: ${margin};
+    animation ${spin} 0.7s linear infinite;
+    pointer-events: none;
+  `}
+`;
+
+export const Spinner = (props: ISpinnerProps) => <SettingAddonContainer><SpinnerElement {...props}/></SettingAddonContainer>

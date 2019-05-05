@@ -28,7 +28,7 @@ export const getNextPublicStashData = async (): Promise<PublicStashData> => {
   }
 
   const poeData: IPublicStashResponse = await PublicStashTabLimiter.schedule(async () => {
-    console.log('fetching');
+    console.log('fetching', db.get('nextChangeId').value());
     return await (await fetch(poeDataEndpoint)).json();
   })
 

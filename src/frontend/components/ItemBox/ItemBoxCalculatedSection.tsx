@@ -1,6 +1,4 @@
 import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core'
 
 import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
 import { IItemTheme } from '../../Theme';
@@ -19,25 +17,15 @@ export const ItemBoxCalculatedSection = ({ calculatedItem }: IItemBoxCalculatedS
     }
   }, originSlots);
   return (
-    <div css={css`
-      padding: 6px;
-    `}>
+    <div>
       {slots.map((slotName) => (
         <React.Fragment key={slotName}>
-          <div
-            css={(theme: IItemTheme) => `
-              color: ${theme.propertyFontColor}
-            `}
-          >
+          <div>
             {slotName}
           </div>
           {calculatedItem.filter((line) => line.changeSlot === slotName).map((line, lineIndex) => (
             <span key={`${line.changeStatName}${line.changeSlot}`}>
-              <span
-                css={css`
-                  color: ${line.positive ? 'rgba(51, 255, 119, 1)' : 'rgba(221, 0, 34, 1)'};
-                `}
-              >
+              <span>
                 {line.changeAbsolute > 0 && '+'}{line.changeAbsolute}
                 {' '}
                 {line.changeStatName}

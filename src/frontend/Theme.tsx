@@ -1,7 +1,4 @@
 import * as React from 'react';
-React;
-
-import {Global as GLBL, css} from '@emotion/core';
 
 export interface IItemTheme {
   backgroundColor: string,
@@ -35,22 +32,30 @@ export const UniqueItemTheme = (ancestorTheme: IItemTheme) => ({
   separatorColor: 'rgba(175, 96, 37, 0.8)',
 });
 
-export const Global = () => {
-  return (
-    <GLBL
-      styles={css`
-        body {
-          margin: 0;
-          padding: 0;
-          font-size: 1rem;
-        }
-        input {
-          font-size: 1rem;
-        }
-        html {
-          font-size: 18px;
-        }
-      `}
-    />
-  );
+// my-theme.ts
+import { DefaultTheme, createGlobalStyle } from 'styled-components'
+
+const myTheme: DefaultTheme = {
+  borderRadius: '5px',
+
+  colors: {
+    main: 'cyan',
+    secondary: 'magenta',
+  },
 }
+
+export { myTheme }
+
+export const Global = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-size: 1rem;
+  }
+  input {
+    font-size: 1rem;
+  }
+  html {
+    font-size: 18px;
+  }
+`;

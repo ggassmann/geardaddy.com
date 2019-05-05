@@ -1,9 +1,10 @@
 import low, { LowdbAsync } from 'lowdb';
 import FileAsync from 'lowdb/adapters/FileAsync';
 import os from 'os';
+import path from 'path';
 
-export const itemsdb: Promise<LowdbAsync<any>> = low(new FileAsync('items.json'));
-export const settingsdb: Promise<LowdbAsync<any>> = low(new FileAsync('settings.json'));
+export const itemsdb: Promise<LowdbAsync<any>> = low(new FileAsync(path.resolve(__dirname, 'items.json')));
+export const settingsdb: Promise<LowdbAsync<any>> = low(new FileAsync(path.resolve(__dirname, 'settings.json')));
 
 (async () => {
   (await itemsdb).defaults({

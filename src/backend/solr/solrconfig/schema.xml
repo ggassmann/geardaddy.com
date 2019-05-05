@@ -31,8 +31,8 @@
     </analyzer>
   </fieldType>
   
-  <field name="_version_" type="plong" indexed="false" stored="false"/>
-  <field name="signatureField" type="string" stored="false" indexed="true" multiValued="false" />
+  <field name="_version_" type="plong" indexed="false" stored="false" />
+  <field name="submittedQueryIds" type="strings" stored="true" indexed="true" multiValued="true" />
 
   <REPLACE_ME_THROUGH_JAVASCRIPT_BACKEND/>
 </schema>

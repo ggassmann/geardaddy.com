@@ -1,49 +1,54 @@
 import * as React from 'react';
+import styled, {css} from 'styled-components';
 React;
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core'
 
 export interface IInputProps {
   value: any;
   before: () => any,
-  beforeSize: string,
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
 }
 
-export const Input = ({ value, before, beforeSize, onChange }: IInputProps) => {
+const InputContainer = styled.div`
+  margin: 2px 10px;
+  height: 1.4rem;
+  display: flex;
+`;
+
+const InputElementContainer = styled.label`
+  display: block;
+  background-color: rgba(245, 245, 245, 1);
+  border-bottom: 1px solid black;
+  display: flex;
+  flex-shrink: 1;
+  flex-basis: 500px;
+`;
+
+const InputAddonContainer = styled.div`
+  flex: 0;
+`;
+
+const InputElement = styled.input<IInputProps>`
+  border: transparent;
+  padding: 0.2rem;
+  background: none;
+  width: 100%;
+`;
+
+export const Input = ({ value, before, onChange }: IInputProps) => {
   return (
-    <div css={{
-      width: '500px',
-      margin: '2px 10px',
-      position: 'relative',
-      height: '1.4rem',
-    }}>
-      {before && 
-        <div css={{
-          position: 'relative',
-          zIndex: 600,
-          pointerEvents: 'none',
-        }}>
-          {before()}
-        </div>
-      }
-      <input
-        value={value || ''}
-        onChange={onChange}
-        css={{
-          border: 'transparent',
-          borderBottom: '1px solid black',
-          backgroundColor: 'rgba(245, 245, 245, 1)',
-          position: 'absolute',
-          top: '0',
-          bottom: '0',
-          left: '0',
-          right: '0',
-          zIndex: 500,
-          padding: '0.2rem',
-          paddingLeft: `${beforeSize || 0}`,
-        }}
-      />
-    </div>
+    <InputContainer>
+      <InputElementContainer>
+        {before && 
+          <InputAddonContainer>
+            {before()}
+          </InputAddonContainer>
+        }
+        <InputElement
+          value={value || ''}
+          onChange={onChange}
+          before={before}
+        />
+      </InputElementContainer>
+    </InputContainer>
   )
 }

@@ -1,11 +1,8 @@
 import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core'
-import { ThemeProvider } from 'emotion-theming'
 import { Helmet } from 'react-helmet';
 
 import { IDisplayedItem } from '../data/IDisplayedItem';
-import { ItemTheme, Global } from './Theme';
+import { Global } from './Theme';
 import { ItemBox } from './components/ItemBox/ItemBox';
 import { SettingInput } from './components/Input/SettingInput';
 
@@ -32,11 +29,9 @@ export const App = () => {
       <SettingInput path='performance.pathofbuilding.processcount' />
       <SettingInput path='server.port' />
       <SettingInput path='solr.port' />
-      <ThemeProvider theme={ItemTheme}>
-        {items.map((item) => (
-          <ItemBox item={item} key={item.id} />
-        ))}
-      </ThemeProvider>
+      {items.map((item) => (
+        <ItemBox item={item} key={item.id} />
+      ))}
     </>
   )
 }
