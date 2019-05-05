@@ -62,7 +62,7 @@ export const App = () => {
                 <LinkButton to='/query/edit/new'>Create new query</LinkButton>
                 <br/><br/>
                 {queries.map((query) => (
-                  <QueryPreview query={query}/>
+                  <QueryPreview query={query} key={query.id}/>
                 ))}
                 {items.map((item) => (
                   <ItemBox item={item} key={item.id} />
