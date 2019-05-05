@@ -4,7 +4,7 @@ React;
 
 export interface IInputProps {
   value: any;
-  before: () => any,
+  before?: () => any,
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
 }
 

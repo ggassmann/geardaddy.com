@@ -8,7 +8,7 @@ module.exports = [{
   devtool: "source-map",
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
   },
   target: 'node',
   resolve: {
@@ -46,7 +46,8 @@ module.exports = [{
   mode: 'development',
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'dist/frontend')
+    path: path.resolve(__dirname, 'dist/frontend'),
+    publicPath: '/',
   },
   resolve: {
     alias: {

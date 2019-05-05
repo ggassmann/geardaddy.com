@@ -43,7 +43,6 @@ export const SettingInput = ({ path }: ISettingInputProps) => {
       <Input
         value={content} 
         before={before}
-        beforeSize='1.6rem'
         onChange={(e) => {
           const value = e.target.value;
           setContent(value);

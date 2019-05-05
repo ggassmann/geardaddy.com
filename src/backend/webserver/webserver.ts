@@ -1,13 +1,16 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import path from 'path';
 import { readFile } from 'fs';
 
-import { settingsdb, itemsdb } from '../db';
+import { settingsdb, itemsdb, querydb } from '../db';
 import { IDisplayedItem } from 'src/data/IDisplayedItem';
 import { FrameType } from '../../data/FrameType';
 import { settingListeners } from '../settings/settings';
+import { IQuery } from 'src/data/IQuery';
 
 const init = async (app: express.Express) => {
+  app.use(bodyParser.json());
   const sendReact = (req: express.Request, res: express.Response) => {
     readFile(path.resolve(__dirname, 'frontend/index.html'), async (err, data) => {
       if (err) {
@@ -65,6 +68,37 @@ const init = async (app: express.Express) => {
         .slice(0, 10)
         .value()
     );
+  });
+  app.get('/api/query/all', async (req, res) => {
+    const queries = await (await querydb).get('queries').value();
+    const queryIds = Object.keys(queries);
+    const queryPreviews: IQuery[] = queryIds.map((queryId) => ({
+      id: queryId,
+      name: queries[queryId].name,
+    }))
+    res.send(queryPreviews);
+  });
+  app.get('/api/query/single/:id', async (req, res) => {
+    const targetQuery = (await querydb).get('queries').find((query: IQuery) => query.id === req.params.id).value();
+    res.send({
+      success: true,
+      value: (targetQuery || {id: req.params.id, new: true}),
+    });
+  });
+  app.post('/api/query/update/:id', async (req, res) => {
+    console.log(req.body.query);
+    if(req.body.query.new) {
+      delete req.body.query.new;
+    }
+
+    if(await (await querydb).get('queries').value() === undefined) {
+      await (await querydb).set('queries', {}).commit();
+    }
+    
+    await (await querydb).get('queries').set(req.body.query.id, req.body.query).commit();
+    
+    res.send((await querydb).get('queries').value());
+    (await querydb).write();
   });
   app.get('*', sendReact);
 }
