@@ -8,8 +8,8 @@ temp.track();
 
 import { ONE_HAND_WEAPONS } from '../data/WeaponCategories';
 import { itemsdb, settingsdb } from './db';
-import { getNextPublicStashData, startPublicStashBuilder } from './publicstashtab';
-import { buildPathOfBuildingItemFromSolrItem, PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners, BuildCalculatedItemFromSolrItem } from './pathofbuilding';
+import { startPublicStashBuilder } from './publicstashtab';
+import { PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners, BuildCalculatedItemFromSolrItem } from './pathofbuilding';
 import { startSolr, killSolr, getSolrItemPage } from './solr/solr';
 import { webserver } from './webserver/webserver';
 import { downloadJava, downloadSolr } from './solr/download';
@@ -44,61 +44,27 @@ import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
 
   const build = await getBuild('test');
 
-  let itemsBuilt = 0;
-  let timeStart = new Date();
-  const tick = async () => {
-    for (let stashIndex = 0; stashIndex < stashData.stashes.length; stashIndex++) {
-      const stash = stashData.stashes[stashIndex];
-      let items = stash.items;
-      items = items.filter((item) => item.identified);
-      items = items.filter((item) => {
-        if (item.category.weapons) {
-          return ONE_HAND_WEAPONS.find((weaponCategory) => {
-            const firstCatLine = item.category.weapons![0] || undefined;
-            const secondCatLine = item.category.weapons![1] || undefined;
-            return weaponCategory[0] == firstCatLine && weaponCategory[1] == secondCatLine;
-          });
-        }
-        return false;
-      });
-      let itemsBuiltFromThisResponse = 0;
-      if (items.length === 0) {
-        await db.set('nextChangeId', stashData.next_change_id).write();
-        tick();
-      }
-      for (let i = 0; i < items.length; i++) {
-        buildPathOfBuildingItemFromSolrItem(stash, items[i], build).then(async (item) => {
-          PathOfBuildingItemBatcher.add(item);
-          itemsBuilt++;
-          itemsBuiltFromThisResponse++;
-
-          const itemsPerSecond = 1 / ((new Date().getTime() - timeStart.getTime()) / itemsBuilt / 1000);
-          if (itemsBuilt % 10 === 0) {
-            console.log(numeral(itemsPerSecond).format('0,0.00'), `items per second (${itemsBuilt} total)`);
-          }
-
-          if (itemsBuiltFromThisResponse === items.length && stashIndex === stashData.stashes.length - 1) {
-            await db.set('nextChangeId', stashData.next_change_id).write();
-            tick();
-          }
-        })
-      }
-    }
-  }
   startPublicStashBuilder();
-  const solrItems: ISolrItem[] = await getSolrItemPage([]);
-  const builtItems: ICalculatedItemLine[][] = await Promise.all(
-    solrItems.map(
-      async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
-    )
-  );
-  builtItems.forEach((_item, index) => {
-    const newItem: IDisplayedItem = {
-      id: solrItems[index].id,
-      baseItem: solrItems[index],
-      calculatedItem: builtItems[index],
-      price: '',
-    };
-    PathOfBuildingItemBatcher.add(newItem);
-  })
+  let passedIds: string[] = [];
+  while (true) {
+    const solrItems: ISolrItem[] = await getSolrItemPage(passedIds);
+    const builtItems: ICalculatedItemLine[][] = await Promise.all(
+      solrItems.map(
+        async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
+      )
+    );
+    await Promise.all(builtItems.map(async (_item, index) => {
+      const newItem: IDisplayedItem = {
+        id: solrItems[index].id,
+        baseItem: solrItems[index],
+        calculatedItem: builtItems[index],
+        price: '',
+      };
+      console.log('returning batcher');
+      return await PathOfBuildingItemBatcher.add(newItem).then(() => {
+        passedIds.push(newItem.id);
+        console.log('pushed id to passed id', newItem.id);
+      });
+    }));
+  }
 })();

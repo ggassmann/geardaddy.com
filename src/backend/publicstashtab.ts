@@ -60,6 +60,7 @@ const tickPublicStashBuilder = async () => {
     return [...prevItems, ...currentItems];
   }, []);
   items = items.filter((item) => item.frameType === FrameType.rare);
+  items = items.filter((item) => item.identified);
   items.forEach((item) => {
     const solrItem = publicItemToSolrItem(item);
     solrBatcher.add(solrItem);

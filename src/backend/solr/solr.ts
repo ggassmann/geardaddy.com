@@ -95,7 +95,13 @@ export const getSolrItemPage = async (excludedIds: string[]) => {
   return (
     await (
       await fetch(
-        `${await getSolrAddress()}solr-item/query?q=*:*${excludedIds.length > 0 && ` NOT (id:${excludedIds.join(' OR id:')})` || ''}&rows=100`
+        `${await getSolrAddress()}solr-item/query`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded ',
+          },
+          body: `q: *:*${excludedIds.length > 0 && ` NOT (id:${excludedIds.join(' OR id:')})` || ''}&rows: 8,`,
+        }
       )
     ).json()
   ).response.docs;

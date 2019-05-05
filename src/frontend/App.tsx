@@ -26,6 +26,7 @@ export const App = () => {
         <title>Gear Daddy</title>
       </Helmet>
       <Global />
+      <h1>Gear Daddy</h1>
       <SettingInput path='filesystem.pathofbuilding.lua_path' />
       <SettingInput path='filesystem.pathofbuilding.builds_path' />
       <SettingInput path='performance.pathofbuilding.processcount' />
