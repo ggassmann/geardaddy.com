@@ -91,8 +91,8 @@ export const submitItemsToSolr = async (items: ISolrItem[]) => {
   };
 }
 
-export const getSolrItemPage = async (excludedIds: string[]) => {
-  return (
+export const getSolrItemPage = async () => {
+  const solrResponse = (
     await (
       await fetch(
         `${await getSolrAddress()}solr-item/query`, {
@@ -100,9 +100,10 @@ export const getSolrItemPage = async (excludedIds: string[]) => {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded ',
           },
-          body: `q: *:*${excludedIds.length > 0 && ` NOT (id:${excludedIds.join(' OR id:')})` || ''}&rows: 8,`,
+          body: `q=*:*&rows: 8,`,
         }
       )
     ).json()
-  ).response.docs;
+  );
+  return solrResponse.response.docs;
 }

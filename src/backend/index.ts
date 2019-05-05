@@ -1,13 +1,11 @@
 import '@babel/polyfill';
 import 'source-map-support/register';
 import _ from 'lodash';
-import numeral from 'numeral';
 import temp from 'temp';
 
 temp.track();
 
-import { ONE_HAND_WEAPONS } from '../data/WeaponCategories';
-import { itemsdb, settingsdb } from './db';
+import { itemsdb, settingsdb, querydb } from './db';
 import { startPublicStashBuilder } from './publicstashtab';
 import { PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners, BuildCalculatedItemFromSolrItem } from './pathofbuilding';
 import { startSolr, killSolr, getSolrItemPage } from './solr/solr';
@@ -45,9 +43,11 @@ import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
   const build = await getBuild('test');
 
   startPublicStashBuilder();
-  let passedIds: string[] = [];
-  while (true) {
-    const solrItems: ISolrItem[] = await getSolrItemPage(passedIds);
+  const queryMap = (await querydb).get('queries').value();
+  const queryIds = Object.keys(queryMap)
+  const queries = queryIds.map((queryId) => queryMap[queryId]);
+  queries.forEach(async (query) => {
+    const solrItems: ISolrItem[] = await getSolrItemPage();
     const builtItems: ICalculatedItemLine[][] = await Promise.all(
       solrItems.map(
         async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
@@ -60,11 +60,7 @@ import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
         calculatedItem: builtItems[index],
         price: '',
       };
-      console.log('returning batcher');
-      return await PathOfBuildingItemBatcher.add(newItem).then(() => {
-        passedIds.push(newItem.id);
-        console.log('pushed id to passed id', newItem.id);
-      });
+      await PathOfBuildingItemBatcher.add(newItem);
     }));
-  }
+  })
 })();

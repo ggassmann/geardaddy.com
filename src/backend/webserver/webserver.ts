@@ -57,7 +57,7 @@ const init = async (app: express.Express) => {
         ))
         .orderBy((item: IDisplayedItem) => {
           const averageHitLine = item.calculatedItem.find((calculatedLine) => {
-            return calculatedLine.changeStatName.trim() === 'Total DPS'
+            return calculatedLine.changeStatName.trim() === 'Average Hit'
           });
           if (!averageHitLine) {
             return -1000000000;
