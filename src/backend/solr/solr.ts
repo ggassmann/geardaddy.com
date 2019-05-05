@@ -91,7 +91,7 @@ export const submitItemsToSolr = async (items: ISolrItem[]) => {
   };
 }
 
-export const getSolrItemPage = async () => {
+export const getSolrItemPage = async (excludeQueryId: string) => {
   const solrResponse = (
     await (
       await fetch(
@@ -100,7 +100,7 @@ export const getSolrItemPage = async () => {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded ',
           },
-          body: `q=*:*&rows: 8,`,
+          body: `q=*:* AND NOT submittedQueryIds:${excludeQueryId} &rows: 8`,
         }
       )
     ).json()

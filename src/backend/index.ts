@@ -47,7 +47,7 @@ import { ICalculatedItemLine } from 'src/data/ICalculatedItemLine';
   const queryIds = Object.keys(queryMap)
   const queries = queryIds.map((queryId) => queryMap[queryId]);
   queries.forEach(async (query) => {
-    const solrItems: ISolrItem[] = await getSolrItemPage();
+    const solrItems: ISolrItem[] = await getSolrItemPage(query.id);
     const builtItems: ICalculatedItemLine[][] = await Promise.all(
       solrItems.map(
         async (solrItem) => await BuildCalculatedItemFromSolrItem(solrItem, build)
