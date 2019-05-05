@@ -8,7 +8,7 @@ import { FrameType } from '../../data/FrameType';
 import { settingListeners } from '../settings/settings';
 
 const init = async (app: express.Express) => {
-  app.get('/', (req, res) => {
+  const sendReact = (req: express.Request, res: express.Response) => {
     readFile(path.resolve(__dirname, 'frontend/index.html'), async (err, data) => {
       if (err) {
         console.error(err);
@@ -16,14 +16,12 @@ const init = async (app: express.Express) => {
       } else {
         res.setHeader('Content-Type', 'text/html');
         res.send(
-          data.toString().replace(
-            '<body>',
-            `<body><script>window.API_PORT=${await (await settingsdb).get('server.port').value()}</script>`
-          )
+          data.toString() + `<script>window.API_PORT=${await (await settingsdb).get('server.port').value()}</script>`
         );
       }
     })
-  });
+  }
+  app.get('/', sendReact);
   app.use(express.static(path.resolve(__dirname, 'frontend')));
   app.get('/api/setting/:path/:value', async (req, res) => {
     try {
@@ -68,6 +66,7 @@ const init = async (app: express.Express) => {
         .value()
     );
   });
+  app.get('*', sendReact);
 }
 
 const start = async () => {

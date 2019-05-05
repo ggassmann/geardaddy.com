@@ -71,6 +71,8 @@ module.exports = [{
     }]
   },
   plugins: [
-    new WebpackHTMLPlugin(),
+    new WebpackHTMLPlugin({
+      template: path.resolve(__dirname, 'src/frontend/index.html'),
+    }),
   ]
 }];
