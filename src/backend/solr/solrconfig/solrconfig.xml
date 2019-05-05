@@ -19,6 +19,7 @@
 
   <directoryFactory name="DirectoryFactory"
                     class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
+  <schemaFactory class="ClassicIndexSchemaFactory"/>
   <codecFactory class="solr.SchemaCodecFactory"/>
   <indexConfig>
     <lockType>${solr.lock.type:native}</lockType>
