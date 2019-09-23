@@ -8,6 +8,7 @@ import { IDisplayedItem } from 'src/data/IDisplayedItem';
 import { FrameType } from '../../data/FrameType';
 import { settingListeners } from '../settings/settings';
 import { IQuery } from 'src/data/IQuery';
+import { PathOfBuildingBuilds } from 'src/backend/pathofbuilding';
 
 const init = async (app: express.Express) => {
   app.use(bodyParser.json());
@@ -70,7 +71,7 @@ const init = async (app: express.Express) => {
     );
   });
   app.get('/api/query/all', async (req, res) => {
-    const queries = await (await querydb).get('queries').value();
+    const queries = await (await querydb).get('queries').value() || {};
     const queryIds = Object.keys(queries);
     const queryPreviews: IQuery[] = queryIds.map((queryId) => ({
       id: queryId,
@@ -85,6 +86,12 @@ const init = async (app: express.Express) => {
       value: (targetQuery || {id: req.params.id, new: true}),
     });
   });
+  app.get('/api/builds/all', async (req, res) => {
+    res.send({
+      success: true,
+      value: PathOfBuildingBuilds,
+    });
+  })
   app.post('/api/query/update/:id', async (req, res) => {
     console.log(req.body.query);
     if(req.body.query.new) {

@@ -19,12 +19,14 @@ export default ({id}: IPageQueryProps) => {
     return <Redirect to={`/query/edit/${newId}`}/>
   }
   const [queryInfo, setQueryInfo] = React.useState<IQuery>({id});
-  const [queryLoaded, setQueryLoaded] = React.useState<boolean>(false);
+  const [buildsList, setBuildsList] = React.useState<string[]>([]);
+  const [optionsLoaded, setOptionsLoaded] = React.useState<boolean>(false);
   React.useEffect(() => {
     (async () => {
-      setQueryLoaded(false);
+      setOptionsLoaded(false);
       setQueryInfo((await (await fetch(`http://localhost:${window.API_PORT}/api/query/single/${id}`)).json()).value);
-      setQueryLoaded(true);
+      setBuildsList((await (await fetch(`http://localhost:${window.API_PORT}/api/builds/all`)).json()).value);
+      setOptionsLoaded(true);
     })();
   }, [id]);
 
@@ -42,9 +44,7 @@ export default ({id}: IPageQueryProps) => {
     console.log(submitResults);
   }
 
-  console.log(queryInfo);
-
-  if(!queryLoaded) {
+  if(!optionsLoaded) {
     return null;
   }
   
@@ -55,6 +55,17 @@ export default ({id}: IPageQueryProps) => {
         value={queryInfo.name || ''}
         onChange={(e) => setQueryInfo(Object.assign({}, queryInfo, {name: e.target.value}))}
       />
+      <select
+        value={queryInfo.build || 'no_build_selected'}
+        onChange={(e) => setQueryInfo(Object.assign({}, queryInfo, {build: e.target.value}))}
+      >
+        <option value={'no_build_selected'}>Select a Build</option>
+        {buildsList.map((build) => (
+          <option key={build} value={build}>
+            {build}
+          </option>
+        ))}
+      </select>
       <Button
         onClick={submitQuery}
       >

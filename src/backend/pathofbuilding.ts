@@ -16,6 +16,7 @@ import { addSettingListener } from "./settings/settings";
 import { ISolrItem } from "src/data/ISolrItem";
 import { IPublicItemProperty } from "src/data/IPublicItemProperties";
 import { submitSolrItemSubmission } from "./solr/solr";
+import recursiveReadDir from "recursive-readdir";
 
 const LUAJitPath = path.resolve(__dirname, 'include/luajit.exe');
 const TestItemPath = path.resolve(__dirname, 'lua/TestItem.lua');
@@ -34,6 +35,16 @@ PathOfBuildingItemBatcher.on('batch', async (items: IDisplayedItem[]) => {
     await submitSolrItemSubmission(items[i].id, items[i].queryId);
   };
 });
+
+export let PathOfBuildingBuilds: string[] = [];
+
+export const InitPathOfBuidlingBuildWatcher = () => {
+  setInterval(async () => {
+    const buildsPath = (await settingsdb).get('filesystem.pathofbuilding.builds_path').value();
+    const builds = await recursiveReadDir(buildsPath);
+    PathOfBuildingBuilds = builds.map((build) => build.substr(buildsPath.length + 1, build.length - buildsPath.length - 5).replace(/\\/g, '/'));
+  }, 2500);
+}
 
 export const InitPathOfBuildingSettingsListeners = () => {
   addSettingListener('performance.pathofbuilding.processcount', async (value) => {
@@ -64,7 +75,7 @@ export const InitPathOfBuildingSettingsListeners = () => {
   addSettingListener('filesystem.pathofbuilding.builds_path', async (value) => {
     try {
       await fsAccess(value);
-      let contents: string[] = await fsReaddir(value);
+      let contents: string[] = await recursiveReaddir(value);
       let builds = contents.filter((file) => file.endsWith('.xml'));
       if (builds.length === 0) {
         throw new Error('No builds found');

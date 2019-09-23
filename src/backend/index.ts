@@ -7,7 +7,14 @@ temp.track();
 
 import { itemsdb, settingsdb, querydb } from './db';
 import { startPublicStashBuilder } from './publicstashtab';
-import { PathOfBuildingLimiter, getBuild, PathOfBuildingItemBatcher, InitPathOfBuildingSettingsListeners, BuildCalculatedItemFromSolrItem } from './pathofbuilding';
+import {
+  PathOfBuildingLimiter,
+  getBuild,
+  PathOfBuildingItemBatcher,
+  InitPathOfBuildingSettingsListeners,
+  InitPathOfBuidlingBuildWatcher,
+  BuildCalculatedItemFromSolrItem
+} from './pathofbuilding';
 import { startSolr, killSolr, getSolrItemPage } from './solr/solr';
 import { webserver } from './webserver/webserver';
 import { downloadJava, downloadSolr } from './solr/download';
@@ -29,6 +36,7 @@ import { IQuery } from 'src/data/IQuery';
   process.on('SIGTERM', shutdown);
 
   InitPathOfBuildingSettingsListeners();
+  InitPathOfBuidlingBuildWatcher();
   webserver.start();
 
   const db = await itemsdb;

@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "start:build": "webpack --watch",
-    "start:server": "nodemon dist/main.js --watch dist/main.js"
+    "dev": "webpack --watch",
+    "dev:backend": "nodemon dist/main.js --watch dist/main.js"
   },
   "dependencies": {
     "@babel/cli": "^7.4.3",
