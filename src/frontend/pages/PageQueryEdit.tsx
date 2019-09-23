@@ -19,9 +19,12 @@ export default ({id}: IPageQueryProps) => {
     return <Redirect to={`/query/edit/${newId}`}/>
   }
   const [queryInfo, setQueryInfo] = React.useState<IQuery>({id});
+  const [queryLoaded, setQueryLoaded] = React.useState<boolean>(false);
   React.useEffect(() => {
     (async () => {
-      setQueryInfo((await (await fetch(`http://localhost:${window.API_PORT}/api/query/single/${id}`)).json()).value)
+      setQueryLoaded(false);
+      setQueryInfo((await (await fetch(`http://localhost:${window.API_PORT}/api/query/single/${id}`)).json()).value);
+      setQueryLoaded(true);
     })();
   }, [id]);
 
@@ -40,6 +43,10 @@ export default ({id}: IPageQueryProps) => {
   }
 
   console.log(queryInfo);
+
+  if(!queryLoaded) {
+    return null;
+  }
   
   return (
     <Container>
@@ -48,7 +55,9 @@ export default ({id}: IPageQueryProps) => {
         value={queryInfo.name || ''}
         onChange={(e) => setQueryInfo(Object.assign({}, queryInfo, {name: e.target.value}))}
       />
-      <Button onClick={submitQuery}>
+      <Button
+        onClick={submitQuery}
+      >
         {queryInfo.new &&
           'Create New Query and Start'
         ||

@@ -41,9 +41,8 @@ import { IQuery } from 'src/data/IQuery';
   await downloadSolr();
   await startSolr();
 
-  const build = await getBuild('test');
-
   startPublicStashBuilder();
+  /*
   const queryMap = (await querydb).get('queries').value();
   const queryIds = Object.keys(queryMap)
   const queries: IQuery[] = queryIds.map((queryId) => queryMap[queryId]);
@@ -68,4 +67,5 @@ import { IQuery } from 'src/data/IQuery';
       console.log('finished item batch');
     }
   })
+*/
 })();

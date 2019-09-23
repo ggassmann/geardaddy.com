@@ -8,7 +8,7 @@ import temp from 'temp';
 import unzipper from 'unzipper';
 import path from 'path';
 
-const solrDownloadLocation = 'http://apache.mirrors.ionfish.org/lucene/solr/8.0.0/solr-8.0.0.tgz';
+const solrDownloadLocation = 'http://archive.apache.org/dist/lucene/solr/8.0.0/solr-8.0.0.tgz';
 const javaDownloadLocation = 'https://d3pxv6yz143wms.cloudfront.net/8.212.04.2/amazon-corretto-8.212.04.2-windows-x64-jre.zip';
 
 export const downloadJava = async () => {
