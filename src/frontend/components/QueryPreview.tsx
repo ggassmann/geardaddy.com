@@ -10,9 +10,10 @@ interface IQueryPreviewProps {
 }
 
 const QueryPreviewComponent = styled(Link)`
-  width: 220px;
-  height: 220px;
-  display: block;
+  min-width: 220px;
+  min-height: 220px;
+  margin: 1em;
+  flex: 0;
 
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
   transition: 0.3s;

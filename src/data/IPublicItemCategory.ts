@@ -10,6 +10,10 @@ export type IPublicItemWeapons = (
   ['oneaxe']
 );
 
-export interface IPublicItemCategory {
-  [index: string]: string[];
-}
+export type IPublicItemSubCategories = 
+  'ring' | 'amulet' | 'belt' | 'quiver' |
+  'chest' | 'gloves' | 'boots' | 'helmet' |
+  'bow' | 'twoaxe' | 'twosword' | 'twomace' | 'staff' | 'warstaff' |
+  'onesword' | 'onemace' | 'oneaxe' | 'claw' | 'wand' | 'dagger' | 'runedagger';
+
+export type IPublicItemCategory = 'weapons' | 'armour' | 'accessories' | 'jewels' | 'maps' | '';

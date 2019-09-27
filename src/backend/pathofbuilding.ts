@@ -10,7 +10,7 @@ const fsReaddir = util.promisify<string, string[]>(recursiveReaddir);
 
 import { IDisplayedItem } from "src/data/IDisplayedItem";
 import { ICalculatedItemLine } from "src/data/ICalculatedItemLine";
-import { settingsdb, itemsdb } from "./db";
+import { settingsdb, itemsdb, querydb } from "./db";
 import { getRarityFromFrameType } from "../data/FrameType";
 import { addSettingListener } from "./settings/settings";
 import { ISolrItem } from "src/data/ISolrItem";
@@ -27,12 +27,38 @@ export const PathOfBuildingLimiter = new Bottleneck({
 
 export const PathOfBuildingItemBatcher = new Bottleneck.Batcher({
   maxTime: 5000,
-  maxSize: 3,
+  maxSize: 5,
 });
+
+interface IDisplayedItemsByQuery {
+  [queryId: string]: IDisplayedItem[];
+}
+
+export const DisplayedItemsByQuery: IDisplayedItemsByQuery = {};
+fs.readdir(__dirname, (err, files) => {
+  files.forEach((f) => {
+    if(f.startsWith('query')) {
+      const queryId = f.substr(6, f.length - 11);
+      fs.readFile(path.resolve(__dirname, f), (err, data) => {
+        DisplayedItemsByQuery[queryId] = JSON.parse(data.toString());
+      })
+    }
+  })
+});
+
 PathOfBuildingItemBatcher.on('batch', async (items: IDisplayedItem[]) => {
   for (let i = 0; i < items.length; i++) {
-    await (await itemsdb).get('items').push(items[i]).write();
-    await submitSolrItemSubmission(items[i].id, items[i].queryId);
+    const item = items[i];
+    DisplayedItemsByQuery[item.queryId] = [
+      ...(DisplayedItemsByQuery[item.queryId] || []),
+      item,
+    ];
+    await submitSolrItemSubmission(item.id, item.queryId);
+    fs.writeFile(
+      path.resolve(__dirname, `query-${item.queryId}.json`),
+        JSON.stringify(DisplayedItemsByQuery[item.queryId]), () => {
+      }
+    );
   };
 });
 
@@ -141,13 +167,13 @@ export const BuildCalculatedItemFromSolrItem = async (item: ISolrItem, build: st
           outputString.split('\n').forEach((chunk: string) => {
             const chunkInfo = chunk.split('|');
             if (chunkInfo[0] === 'SLOT') {
-              currentChunk = chunkInfo[1].replace(/.+Equippingthisitemin(.+)willgiveyou.+/gm, '$1');
+              currentChunk = chunkInfo[1].replace(/.+Equippingthisitemin(.*?)willgiveyo.+/gm, '$1').trim();
             } else {
               const changeInfo = chunkInfo[1];
               const positive = chunkInfo[0] === 'true';
               const changeAbsolute = parseFloat(changeInfo.split(' ')[0]);
               const changeRelative = parseFloat(changeInfo.replace(/(.+\(|%\))/, ''));
-              const changeStatName = changeInfo.replace(/(-|\+)([^ ]+ )(.*?)(\(.+\n|\n|\(.+$|$)/gm, '$3');
+              const changeStatName = changeInfo.replace(/(-|\+)([^ ]+ )(.*?)(\(.+\n|\n|\(.+$|$)/gm, '$3').trim();
               calculatedItem.push({
                 positive,
                 changeAbsolute,

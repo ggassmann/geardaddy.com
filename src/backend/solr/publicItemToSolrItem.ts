@@ -2,8 +2,8 @@ import { IPublicItem } from "src/data/IPublicItem";
 import { ISolrItem } from "src/data/ISolrItem";
 
 export const publicItemToSolrItem = (item: IPublicItem): ISolrItem => {
-  const categoryPropertyOne = Object.keys(item.category)[0];
-  const categoryPropertyTwo = item.category[categoryPropertyOne];
+  const categoryPropertyOne = item.extended.category;
+  const categoryPropertyTwo = (item.extended.subcategories || []).join(' ');
   const itemCategoryString = categoryPropertyOne + (categoryPropertyTwo && `|${categoryPropertyTwo}` || '');
   let attacksPerSecond = 0;
   let weaponRange = 0;

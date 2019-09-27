@@ -7,7 +7,7 @@ import { BrowserRouter, Route, Switch, Link } from 'react-router-dom';
 
 import { Header } from './Header';
 import { LinkButton } from './components/Button';
-import { Container } from './components/Grid';
+import { Container, Row } from './components/Grid';
 
 import { IDisplayedItem } from '../data/IDisplayedItem';
 import { Global } from './Theme';
@@ -15,17 +15,16 @@ import { ItemBox } from './components/ItemBox/ItemBox';
 import PageQueryEdit, { IPageQueryMatchProps } from './pages/PageQueryEdit';
 import { IQuery } from 'src/data/IQuery';
 import { QueryPreview } from './components/QueryPreview';
+import PageQueryResults from 'src/frontend/pages/PageQueryResults';
 
 const AppContainer = styled.div`
   padding-top: 3.25rem;
 `;
 
 export const App = () => {
-  const [items, setItems] = React.useState<IDisplayedItem[]>([]);
   const [queries, setQueries] = React.useState<IQuery[]>([]);
   React.useEffect(() => {
     (async () => {
-      setItems(await (await fetch(`http://localhost:${window.API_PORT}/api/items`)).json());
       setQueries(await (await fetch(`http://localhost:${window.API_PORT}/api/query/all`)).json());
     })();
   }, []);
@@ -59,22 +58,25 @@ export const App = () => {
             </Route>
             <Route exact path='/'>
               <Container>
-                <LinkButton to='/query/edit/new'>Create new query</LinkButton>
+                <Row>
+                  <LinkButton to='/query/edit/new'>Create new query</LinkButton>
+                </Row>
                 <br/><br/>
-                {queries.map((query) => (
-                  <QueryPreview query={query} key={query.id}/>
-                ))}
-                {items.map((item) => (
-                  <ItemBox item={item} key={item.id} />
-                ))}
+                <Row>
+                  {queries.map((query) => (
+                    <QueryPreview query={query} key={query.id}/>
+                  ))}
+                </Row>
               </Container>
             </Route>
-            <Route path ='/query'>
-              <Route
-                path='/query/edit/:id'
-                render={({match}: IPageQueryMatchProps) => <PageQueryEdit id={match.params.id}/>
-              }/>
-            </Route>
+            <Route
+              path='/query/edit/:id'
+              render={({match}: IPageQueryMatchProps) => <PageQueryEdit id={match.params.id}/>}
+            />
+            <Route
+              path='/query/:id'
+              render={({match}: IPageQueryMatchProps) => <PageQueryResults id={match.params.id}/>}
+            />
           </Switch>
         </AppContainer>
       </BrowserRouter>

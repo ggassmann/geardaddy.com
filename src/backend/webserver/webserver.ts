@@ -8,7 +8,7 @@ import { IDisplayedItem } from 'src/data/IDisplayedItem';
 import { FrameType } from '../../data/FrameType';
 import { settingListeners } from '../settings/settings';
 import { IQuery } from 'src/data/IQuery';
-import { PathOfBuildingBuilds } from 'src/backend/pathofbuilding';
+import { PathOfBuildingBuilds, DisplayedItemsByQuery } from 'src/backend/pathofbuilding';
 
 const init = async (app: express.Express) => {
   app.use(bodyParser.json());
@@ -86,11 +86,11 @@ const init = async (app: express.Express) => {
       value: (targetQuery || {id: req.params.id, new: true}),
     });
   });
-  app.get('/api/builds/all', async (req, res) => {
+  app.get('/api/query/items/:id', async (req, res) => {
     res.send({
       success: true,
-      value: PathOfBuildingBuilds,
-    });
+      value: DisplayedItemsByQuery[req.params.id] || [],
+    })
   })
   app.post('/api/query/update/:id', async (req, res) => {
     console.log(req.body.query);
@@ -107,6 +107,12 @@ const init = async (app: express.Express) => {
     res.send((await querydb).get('queries').value());
     (await querydb).write();
   });
+  app.get('/api/builds/all', async (req, res) => {
+    res.send({
+      success: true,
+      value: PathOfBuildingBuilds,
+    });
+  })
   app.get('*', sendReact);
 }
 
